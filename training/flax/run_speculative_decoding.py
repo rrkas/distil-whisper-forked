@@ -53,7 +53,9 @@ student.to(DEVICE)
 
 processor = AutoProcessor.from_pretrained("sanchit-gandhi/large-32-2-gpu-flat-lr")
 
-ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+ds = load_dataset(
+    "hf-internal-testing/librispeech_asr_dummy", "clean", split="validation"
+)
 
 total_time_default = 0
 total_time_spec = 0
@@ -113,7 +115,9 @@ for audio_idx in range(0, end_idx, BATCH_SIZE):
 
     if spec_out_2 != default_out:
         COUNT += 1
-        print(f"Audio {audio_idx} does not match. Spec: {spec_out_2}, True: {default_out}")
+        print(
+            f"Audio {audio_idx} does not match. Spec: {spec_out_2}, True: {default_out}"
+        )
 
 
 print(20 * "=")

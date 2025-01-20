@@ -209,14 +209,18 @@ class FlaxStaticForceTokensLogitsProcessor(FlaxLogitsProcessor):
             force_token_array = force_token_array.at[index].set(token)
         self.force_token_array = jnp.int32(force_token_array)
 
-    def __call__(self, input_ids: jnp.ndarray, scores: jnp.ndarray, cur_len: int) -> jnp.ndarray:
+    def __call__(
+        self, input_ids: jnp.ndarray, scores: jnp.ndarray, cur_len: int
+    ) -> jnp.ndarray:
         def _force_token(generation_idx):
             batch_size = scores.shape[0]
             current_token = self.force_token_array[generation_idx]
 
             new_scores = jnp.ones_like(scores, dtype=scores.dtype) * -float("inf")
             updates = jnp.zeros((batch_size, 1), dtype=scores.dtype)
-            new_scores = lax.dynamic_update_slice(new_scores, updates, (0, current_token))
+            new_scores = lax.dynamic_update_slice(
+                new_scores, updates, (0, current_token)
+            )
             return new_scores
 
         scores = lax.cond(
@@ -305,9 +309,15 @@ class FlaxWhisperAttention(nn.Module):
         key_states = self._split_heads(key_states)
         value_states = self._split_heads(value_states)
 
-        query_states = with_sharding_constraint(query_states, ("batch", "length", "heads", "kv"))
-        key_states = with_sharding_constraint(key_states, ("batch", "length", "heads", "kv"))
-        value_states = with_sharding_constraint(value_states, ("batch", "length", "heads", "kv"))
+        query_states = with_sharding_constraint(
+            query_states, ("batch", "length", "heads", "kv")
+        )
+        key_states = with_sharding_constraint(
+            key_states, ("batch", "length", "heads", "kv")
+        )
+        value_states = with_sharding_constraint(
+            value_states, ("batch", "length", "heads", "kv")
+        )
 
         if self.causal:
             query_length, key_length = query_states.shape[1], key_states.shape[1]
@@ -322,11 +332,15 @@ class FlaxWhisperAttention(nn.Module):
                 )
             else:
                 causal_mask = self.causal_mask[:, :, :query_length, :key_length]
-            causal_mask = jnp.broadcast_to(causal_mask, (batch_size,) + causal_mask.shape[1:])
+            causal_mask = jnp.broadcast_to(
+                causal_mask, (batch_size,) + causal_mask.shape[1:]
+            )
 
         # combine masks if needed
         if attention_mask is not None and self.causal:
-            attention_mask = jnp.broadcast_to(jnp.expand_dims(attention_mask, axis=(-3, -2)), causal_mask.shape)
+            attention_mask = jnp.broadcast_to(
+                jnp.expand_dims(attention_mask, axis=(-3, -2)), causal_mask.shape
+            )
             attention_mask = combine_masks(attention_mask, causal_mask)
         elif self.causal:
             attention_mask = causal_mask
@@ -347,7 +361,9 @@ class FlaxWhisperAttention(nn.Module):
             attention_bias = lax.select(
                 attention_mask > 0,
                 jnp.full(attention_mask.shape, 0.0).astype(self.dtype),
-                jnp.full(attention_mask.shape, jnp.finfo(self.dtype).min).astype(self.dtype),
+                jnp.full(attention_mask.shape, jnp.finfo(self.dtype).min).astype(
+                    self.dtype
+                ),
             )
         else:
             attention_bias = None
@@ -375,7 +391,9 @@ class FlaxWhisperAttention(nn.Module):
         return attn_output, attn_weights
 
     def _split_heads(self, hidden_state) -> jnp.ndarray:
-        return hidden_state.reshape(hidden_state.shape[:2] + (self.num_heads, self.head_dim))
+        return hidden_state.reshape(
+            hidden_state.shape[:2] + (self.num_heads, self.head_dim)
+        )
 
     def _merge_heads(self, hidden_state) -> jnp.ndarray:
         return hidden_state.reshape(hidden_state.shape[:2] + (self.embed_dim,))
@@ -393,9 +411,15 @@ class FlaxWhisperAttention(nn.Module):
         def swap_dims(x):
             return x[:-3] + tuple(x[i] for i in [-2, -1, -3])
 
-        cached_key = self.variable("cache", "cached_key", jnp.zeros, swap_dims(key.shape), key.dtype)
-        cached_value = self.variable("cache", "cached_value", jnp.zeros, swap_dims(value.shape), value.dtype)
-        cache_index = self.variable("cache", "cache_index", lambda: jnp.array(0, dtype=jnp.int32))
+        cached_key = self.variable(
+            "cache", "cached_key", jnp.zeros, swap_dims(key.shape), key.dtype
+        )
+        cached_value = self.variable(
+            "cache", "cached_value", jnp.zeros, swap_dims(value.shape), value.dtype
+        )
+        cache_index = self.variable(
+            "cache", "cache_index", lambda: jnp.array(0, dtype=jnp.int32)
+        )
 
         if is_initialized:
             batch_size, num_heads, head_dim, seq_length = cached_key.value.shape
@@ -469,7 +493,9 @@ class FlaxWhisperEncoderLayer(nn.Module):
             dtype=self.dtype,
             params_dtype=self.params_dtype,
         )
-        self.self_attn_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.self_attn_layer_norm = LayerNorm(
+            dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype
+        )
         self.dropout_layer = nn.Dropout(rate=self.config.dropout)
         self.activation_fn = ACT2FN[self.config.activation_function]
         self.activation_dropout_layer = nn.Dropout(rate=self.config.activation_dropout)
@@ -485,7 +511,9 @@ class FlaxWhisperEncoderLayer(nn.Module):
             params_dtype=self.params_dtype,
             kernel_axes=("mlp", "embed"),
         )
-        self.final_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.final_layer_norm = LayerNorm(
+            dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype
+        )
 
     def __call__(
         self,
@@ -498,31 +526,45 @@ class FlaxWhisperEncoderLayer(nn.Module):
         if self.use_scan:
             hidden_states = hidden_states[0]
 
-        hidden_states = with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        hidden_states = with_sharding_constraint(
+            hidden_states, ("batch", "length", "embed")
+        )
 
         residual = hidden_states
 
         layernorm_output = self.self_attn_layer_norm(hidden_states)
-        layernorm_output = with_sharding_constraint(layernorm_output, ("batch", "length", "embed"))
+        layernorm_output = with_sharding_constraint(
+            layernorm_output, ("batch", "length", "embed")
+        )
 
-        attn_output, attn_weights = self.self_attn(hidden_states=layernorm_output, attention_mask=attention_mask)
+        attn_output, attn_weights = self.self_attn(
+            hidden_states=layernorm_output, attention_mask=attention_mask
+        )
         attn_output = self.dropout_layer(attn_output, deterministic=deterministic)
         attn_output = residual + attn_output
-        attn_output = with_sharding_constraint(attn_output, ("batch", "length", "embed"))
+        attn_output = with_sharding_constraint(
+            attn_output, ("batch", "length", "embed")
+        )
 
         residual = attn_output
 
         post_layer_norm = self.final_layer_norm(attn_output)
-        post_layer_norm = with_sharding_constraint(post_layer_norm, ("batch", "length", "embed"))
+        post_layer_norm = with_sharding_constraint(
+            post_layer_norm, ("batch", "length", "embed")
+        )
 
         fc1_output = self.activation_fn(self.fc1(post_layer_norm))
-        fc1_output = self.activation_dropout_layer(fc1_output, deterministic=deterministic)
+        fc1_output = self.activation_dropout_layer(
+            fc1_output, deterministic=deterministic
+        )
         fc1_output = with_sharding_constraint(fc1_output, ("batch", "length", "mlp"))
 
         hidden_states = self.fc2(fc1_output)
         hidden_states = self.dropout_layer(hidden_states, deterministic=deterministic)
         hidden_states = residual + hidden_states
-        hidden_states = with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        hidden_states = with_sharding_constraint(
+            hidden_states, ("batch", "length", "embed")
+        )
 
         outputs = (hidden_states,)
 
@@ -572,7 +614,9 @@ class FlaxWhisperEncoderLayerCollection(nn.Module):
 
         if self.use_scan:
             if output_attentions:
-                raise ValueError("Cannot use `scan` with `output_attentions` set to True")
+                raise ValueError(
+                    "Cannot use `scan` with `output_attentions` set to True"
+                )
 
             # nicest behaviour for scan is to let the compiler figure out the correct shapes for the hidden states
             # so we'll just pass an empty tuple as the carry initializer and hold on to the first hidden states for later
@@ -610,7 +654,9 @@ class FlaxWhisperEncoderLayerCollection(nn.Module):
 
             if output_hidden_states:
                 # if we're using scan we'll surely be training -> return hidden states as a tensor rather than tuple
-                all_hidden_states = jnp.vstack([input_hidden_states[None, ...], all_hidden_states[0]])
+                all_hidden_states = jnp.vstack(
+                    [input_hidden_states[None, ...], all_hidden_states[0]]
+                )
 
         else:
             for layer_idx in range(self.config.encoder_layers):
@@ -618,7 +664,9 @@ class FlaxWhisperEncoderLayerCollection(nn.Module):
                     all_hidden_states = all_hidden_states + (hidden_states,)
                 # add LayerDrop (see https://arxiv.org/abs/1909.11556 for description)
                 dropout_probability = random.uniform(0, 1)
-                if not deterministic and (dropout_probability < self.config.encoder_layerdrop):  # skip the layer
+                if not deterministic and (
+                    dropout_probability < self.config.encoder_layerdrop
+                ):  # skip the layer
                     layer_outputs = (None, None)
                 else:
                     layer_outputs = FlaxWhisperEncoderCheckpointLayer(
@@ -672,7 +720,9 @@ class FlaxWhisperDecoderLayer(nn.Module):
         self.activation_fn = ACT2FN[self.config.activation_function]
         self.activation_dropout_layer = nn.Dropout(rate=self.config.activation_dropout)
 
-        self.self_attn_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.self_attn_layer_norm = LayerNorm(
+            dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype
+        )
         self.encoder_attn = FlaxWhisperAttention(
             config=self.config,
             embed_dim=self.embed_dim,
@@ -681,7 +731,9 @@ class FlaxWhisperDecoderLayer(nn.Module):
             dtype=self.dtype,
             params_dtype=self.params_dtype,
         )
-        self.encoder_attn_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.encoder_attn_layer_norm = LayerNorm(
+            dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype
+        )
         self.fc1 = DenseGeneral(
             self.config.decoder_ffn_dim,
             dtype=self.dtype,
@@ -694,7 +746,9 @@ class FlaxWhisperDecoderLayer(nn.Module):
             params_dtype=self.params_dtype,
             kernel_axes=("mlp", "embed"),
         )
-        self.final_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.final_layer_norm = LayerNorm(
+            dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype
+        )
 
     def __call__(
         self,
@@ -710,12 +764,16 @@ class FlaxWhisperDecoderLayer(nn.Module):
         if self.use_scan:
             hidden_states = hidden_states[0]
 
-        hidden_states = with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        hidden_states = with_sharding_constraint(
+            hidden_states, ("batch", "length", "embed")
+        )
 
         residual = hidden_states
 
         layer_norm_output = self.self_attn_layer_norm(hidden_states)
-        layer_norm_output = with_sharding_constraint(layer_norm_output, ("batch", "length", "embed"))
+        layer_norm_output = with_sharding_constraint(
+            layer_norm_output, ("batch", "length", "embed")
+        )
 
         # Self Attention
         self_attn_output, self_attn_weights = self.self_attn(
@@ -723,9 +781,13 @@ class FlaxWhisperDecoderLayer(nn.Module):
             attention_mask=attention_mask,
             init_cache=init_cache,
         )
-        self_attn_output = self.dropout_layer(self_attn_output, deterministic=deterministic)
+        self_attn_output = self.dropout_layer(
+            self_attn_output, deterministic=deterministic
+        )
         self_attn_output = residual + self_attn_output
-        self_attn_output = with_sharding_constraint(self_attn_output, ("batch", "length", "embed"))
+        self_attn_output = with_sharding_constraint(
+            self_attn_output, ("batch", "length", "embed")
+        )
 
         # Cross-Attention Block
         cross_attn_weights = None
@@ -742,24 +804,34 @@ class FlaxWhisperDecoderLayer(nn.Module):
                 key_value_states=encoder_hidden_states,
                 attention_mask=encoder_attention_mask,
             )
-            cross_attn_output = self.dropout_layer(cross_attn_output, deterministic=deterministic)
+            cross_attn_output = self.dropout_layer(
+                cross_attn_output, deterministic=deterministic
+            )
             cross_attn_output = residual + cross_attn_output
-            cross_attn_output = with_sharding_constraint(cross_attn_output, ("batch", "length", "embed"))
+            cross_attn_output = with_sharding_constraint(
+                cross_attn_output, ("batch", "length", "embed")
+            )
 
         # Fully Connected
         residual = cross_attn_output
 
         post_layer_norm = self.final_layer_norm(cross_attn_output)
-        post_layer_norm = with_sharding_constraint(post_layer_norm, ("batch", "length", "embed"))
+        post_layer_norm = with_sharding_constraint(
+            post_layer_norm, ("batch", "length", "embed")
+        )
 
         fc1_output = self.activation_fn(self.fc1(post_layer_norm))
-        fc1_output = self.activation_dropout_layer(fc1_output, deterministic=deterministic)
+        fc1_output = self.activation_dropout_layer(
+            fc1_output, deterministic=deterministic
+        )
         fc1_output = with_sharding_constraint(fc1_output, ("batch", "length", "mlp"))
 
         hidden_states = self.fc2(fc1_output)
         hidden_states = self.dropout_layer(hidden_states, deterministic=deterministic)
         hidden_states = residual + hidden_states
-        hidden_states = with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        hidden_states = with_sharding_constraint(
+            hidden_states, ("batch", "length", "embed")
+        )
 
         outputs = (hidden_states,)
 
@@ -800,7 +872,9 @@ class FlaxWhisperDecoderLayerCollection(nn.Module):
         # decoder layers
         all_hidden_states = () if output_hidden_states else None
         all_self_attns = () if output_attentions else None
-        all_cross_attentions = () if (output_attentions and encoder_hidden_states is not None) else None
+        all_cross_attentions = (
+            () if (output_attentions and encoder_hidden_states is not None) else None
+        )
 
         FlaxWhisperDecoderCheckpointLayer = (
             remat(
@@ -814,7 +888,9 @@ class FlaxWhisperDecoderLayerCollection(nn.Module):
 
         if self.use_scan:
             if output_attentions:
-                raise ValueError("Cannot use `scan` with `output_attentions` set to True")
+                raise ValueError(
+                    "Cannot use `scan` with `output_attentions` set to True"
+                )
 
             input_hidden_states = hidden_states
             hidden_states = (hidden_states,)
@@ -854,7 +930,9 @@ class FlaxWhisperDecoderLayerCollection(nn.Module):
 
             if output_hidden_states:
                 # if we're using scan we'll surely be training -> return hidden states as a tensor rather than tuple
-                all_hidden_states = jnp.vstack([input_hidden_states[None, ...], all_hidden_states[0]])
+                all_hidden_states = jnp.vstack(
+                    [input_hidden_states[None, ...], all_hidden_states[0]]
+                )
 
         else:
             for layer_idx in range(self.config.decoder_layers):
@@ -862,7 +940,9 @@ class FlaxWhisperDecoderLayerCollection(nn.Module):
                     all_hidden_states += (hidden_states,)
                     # add LayerDrop (see https://arxiv.org/abs/1909.11556 for description)
                 dropout_probability = random.uniform(0, 1)
-                if not deterministic and (dropout_probability < self.config.decoder_layerdrop):
+                if not deterministic and (
+                    dropout_probability < self.config.decoder_layerdrop
+                ):
                     layer_outputs = (None, None, None)
                 else:
                     layer_outputs = FlaxWhisperDecoderCheckpointLayer(
@@ -951,7 +1031,9 @@ class FlaxWhisperEncoder(nn.Module):
             params_dtype=self.params_dtype,
         )
 
-        self.layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.layer_norm = LayerNorm(
+            dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype
+        )
 
     def __call__(
         self,
@@ -975,11 +1057,17 @@ class FlaxWhisperEncoder(nn.Module):
 
         input_features = input_features.transpose(0, 2, 1)
         hidden_states = jax.nn.gelu(self.conv1(input_features), approximate=False)
-        hidden_states = with_sharding_constraint(hidden_states, ("batch", "embed", "num_mel"))
+        hidden_states = with_sharding_constraint(
+            hidden_states, ("batch", "embed", "num_mel")
+        )
         hidden_states = jax.nn.gelu(self.conv2(hidden_states), approximate=False)
-        hidden_states = with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        hidden_states = with_sharding_constraint(
+            hidden_states, ("batch", "length", "embed")
+        )
 
-        embed_positions = self.embed_positions(jnp.arange(self.config.max_source_positions))
+        embed_positions = self.embed_positions(
+            jnp.arange(self.config.max_source_positions)
+        )
         # sinusoidal positional embeddings should not be trained
         embed_positions = jax.lax.stop_gradient(embed_positions)
         hidden_states = hidden_states + embed_positions
@@ -1003,12 +1091,16 @@ class FlaxWhisperEncoder(nn.Module):
         if output_hidden_states:
             hidden_states = outputs[1]
             if self.use_scan:
-                hidden_states = jnp.vstack([hidden_states[:-1], last_hidden_states[None, ...]])
+                hidden_states = jnp.vstack(
+                    [hidden_states[:-1], last_hidden_states[None, ...]]
+                )
             else:
                 hidden_states = hidden_states[:-1] + (last_hidden_states,)
 
         if not return_dict:
-            outputs = (last_hidden_states, hidden_states) + (outputs[2:] if output_hidden_states else outputs[1:])
+            outputs = (last_hidden_states, hidden_states) + (
+                outputs[2:] if output_hidden_states else outputs[1:]
+            )
             return tuple(v for v in outputs if v is not None)
 
         return FlaxBaseModelOutput(
@@ -1049,7 +1141,9 @@ class FlaxWhisperDecoder(nn.Module):
 
         self.dropout_layer = nn.Dropout(rate=self.config.dropout)
 
-        self.layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-5, params_dtype=self.params_dtype)
+        self.layer_norm = LayerNorm(
+            dtype=self.dtype, epsilon=1e-5, params_dtype=self.params_dtype
+        )
 
     def __call__(
         self,
@@ -1088,12 +1182,16 @@ class FlaxWhisperDecoder(nn.Module):
         if output_hidden_states:
             hidden_states = outputs[1]
             if self.use_scan:
-                hidden_states = jnp.vstack([hidden_states[:-1], last_hidden_states[None, ...]])
+                hidden_states = jnp.vstack(
+                    [hidden_states[:-1], last_hidden_states[None, ...]]
+                )
             else:
                 hidden_states = hidden_states[:-1] + (last_hidden_states,)
 
         if not return_dict:
-            outputs = (last_hidden_states, hidden_states) + (outputs[2:] if output_hidden_states else outputs[1:])
+            outputs = (last_hidden_states, hidden_states) + (
+                outputs[2:] if output_hidden_states else outputs[1:]
+            )
             return tuple(v for v in outputs if v is not None)
 
         return FlaxBaseModelOutputWithPastAndCrossAttentions(
@@ -1226,7 +1324,9 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
             _do_init=_do_init,
         )
 
-    def init_weights(self, rng: jax.random.PRNGKey, input_shape: Tuple, params: FrozenDict = None) -> FrozenDict:
+    def init_weights(
+        self, rng: jax.random.PRNGKey, input_shape: Tuple, params: FrozenDict = None
+    ) -> FrozenDict:
         # init input tensors
         input_features = jnp.zeros(input_shape, dtype="f4")
         input_features = input_features.at[(..., -1)].set(self.config.eos_token_id)
@@ -1235,7 +1335,9 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
         decoder_attention_mask = jnp.ones_like(decoder_input_ids)
 
         batch_size, sequence_length = decoder_input_ids.shape
-        decoder_position_ids = jnp.broadcast_to(jnp.arange(sequence_length)[None, :], (batch_size, sequence_length))
+        decoder_position_ids = jnp.broadcast_to(
+            jnp.arange(sequence_length)[None, :], (batch_size, sequence_length)
+        )
 
         params_rng, dropout_rng = jax.random.split(rng)
         rngs = {"params": params_rng, "dropout": dropout_rng}
@@ -1507,7 +1609,9 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
         return unfreeze(init_variables["cache"])
 
     @add_start_docstrings(WHISPER_ENCODE_INPUTS_DOCSTRING)
-    @replace_return_docstrings(output_type=FlaxBaseModelOutput, config_class=WhisperConfig)
+    @replace_return_docstrings(
+        output_type=FlaxBaseModelOutput, config_class=WhisperConfig
+    )
     def encode(
         self,
         input_features: jnp.ndarray,
@@ -1536,11 +1640,19 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
         >>> input_features = inputs.input_features
         >>> encoder_outputs = model.encode(input_features=input_features)
         ```"""
-        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
-        output_hidden_states = (
-            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
         )
-        return_dict = return_dict if return_dict is not None else self.config.return_dict
+        output_hidden_states = (
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
+        )
+        return_dict = (
+            return_dict if return_dict is not None else self.config.return_dict
+        )
 
         # Handle any PRNG if needed
         rngs = {}
@@ -1605,21 +1717,33 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
         >>> last_decoder_hidden_states = outputs.last_hidden_state
         ```"""
 
-        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
-        output_hidden_states = (
-            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
         )
-        return_dict = return_dict if return_dict is not None else self.config.return_dict
+        output_hidden_states = (
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
+        )
+        return_dict = (
+            return_dict if return_dict is not None else self.config.return_dict
+        )
 
         encoder_hidden_states = encoder_outputs[0]
 
         batch_size, sequence_length = decoder_input_ids.shape
         if decoder_position_ids is None:
             if past_key_values is not None:
-                raise ValueError("Make sure to provide `decoder_position_ids` when passing `past_key_values`.")
+                raise ValueError(
+                    "Make sure to provide `decoder_position_ids` when passing `past_key_values`."
+                )
 
             if decoder_attention_mask is not None:
-                decoder_position_ids = (decoder_attention_mask.cumsum(-1) * decoder_attention_mask) - 1
+                decoder_position_ids = (
+                    decoder_attention_mask.cumsum(-1) * decoder_attention_mask
+                ) - 1
             else:
                 decoder_position_ids = jnp.broadcast_to(
                     jnp.arange(sequence_length)[None, :], (batch_size, sequence_length)
@@ -1702,16 +1826,26 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
         params: dict = None,
         dropout_rng: PRNGKey = None,
     ):
-        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
-        output_hidden_states = (
-            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
         )
-        return_dict = return_dict if return_dict is not None else self.config.return_dict
+        output_hidden_states = (
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
+        )
+        return_dict = (
+            return_dict if return_dict is not None else self.config.return_dict
+        )
 
         # prepare decoder inputs
         if decoder_position_ids is None:
             if decoder_attention_mask is not None:
-                decoder_position_ids = (decoder_attention_mask.cumsum(-1) * decoder_attention_mask) - 1
+                decoder_position_ids = (
+                    decoder_attention_mask.cumsum(-1) * decoder_attention_mask
+                ) - 1
             else:
                 batch_size, sequence_length = decoder_input_ids.shape
                 decoder_position_ids = jnp.broadcast_to(
@@ -1739,7 +1873,9 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
 
 
 @add_start_docstrings(
-    ("The bare Whisper Model transformer outputting raw hidden-states without any specific head on top."),
+    (
+        "The bare Whisper Model transformer outputting raw hidden-states without any specific head on top."
+    ),
     WHISPER_START_DOCSTRING,
 )
 class FlaxWhisperModel(FlaxWhisperPreTrainedModel):
@@ -1749,7 +1885,9 @@ class FlaxWhisperModel(FlaxWhisperPreTrainedModel):
     module_class = FlaxWhisperModule
 
 
-append_call_sample_docstring(FlaxWhisperModel, _CHECKPOINT_FOR_DOC, FlaxSeq2SeqModelOutput, _CONFIG_FOR_DOC)
+append_call_sample_docstring(
+    FlaxWhisperModel, _CHECKPOINT_FOR_DOC, FlaxSeq2SeqModelOutput, _CONFIG_FOR_DOC
+)
 
 
 class FlaxWhisperForConditionalGenerationModule(nn.Module):
@@ -1810,8 +1948,12 @@ class FlaxWhisperForConditionalGenerationModule(nn.Module):
         hidden_states = outputs[0]
 
         if self.config.tie_word_embeddings:
-            shared_embedding = self.model.decoder.embed_tokens.variables["params"]["embedding"]
-            lm_logits = self.lm_head.apply({"params": {"kernel": shared_embedding.T}}, hidden_states)
+            shared_embedding = self.model.decoder.embed_tokens.variables["params"][
+                "embedding"
+            ]
+            lm_logits = self.lm_head.apply(
+                {"params": {"kernel": shared_embedding.T}}, hidden_states
+            )
         else:
             lm_logits = self.lm_head(hidden_states)
 
@@ -1830,12 +1972,16 @@ class FlaxWhisperForConditionalGenerationModule(nn.Module):
         )
 
 
-@add_start_docstrings("The Whisper Model with a language modeling head.", WHISPER_START_DOCSTRING)
+@add_start_docstrings(
+    "The Whisper Model with a language modeling head.", WHISPER_START_DOCSTRING
+)
 class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
     module_class = FlaxWhisperForConditionalGenerationModule
 
     @add_start_docstrings(WHISPER_DECODE_INPUTS_DOCSTRING)
-    @replace_return_docstrings(output_type=FlaxCausalLMOutputWithCrossAttentions, config_class=WhisperConfig)
+    @replace_return_docstrings(
+        output_type=FlaxCausalLMOutputWithCrossAttentions, config_class=WhisperConfig
+    )
     def decode(
         self,
         decoder_input_ids,
@@ -1873,21 +2019,33 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
         >>> outputs = model.decode(decoder_input_ids, encoder_outputs)
         >>> last_decoder_hidden_states = outputs.last_hidden_state
         ```"""
-        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
-        output_hidden_states = (
-            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
         )
-        return_dict = return_dict if return_dict is not None else self.config.return_dict
+        output_hidden_states = (
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
+        )
+        return_dict = (
+            return_dict if return_dict is not None else self.config.return_dict
+        )
 
         encoder_hidden_states = encoder_outputs[0]
 
         batch_size, sequence_length = decoder_input_ids.shape
         if decoder_position_ids is None:
             if past_key_values is not None:
-                raise ValueError("Make sure to provide `decoder_position_ids` when passing `past_key_values`.")
+                raise ValueError(
+                    "Make sure to provide `decoder_position_ids` when passing `past_key_values`."
+                )
 
             if decoder_attention_mask is not None:
-                decoder_position_ids = (decoder_attention_mask.cumsum(-1) * decoder_attention_mask) - 1
+                decoder_position_ids = (
+                    decoder_attention_mask.cumsum(-1) * decoder_attention_mask
+                ) - 1
             else:
                 decoder_position_ids = jnp.broadcast_to(
                     jnp.arange(sequence_length)[None, :], (batch_size, sequence_length)
@@ -1928,8 +2086,12 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
             hidden_states = outputs[0]
 
             if self.config.tie_word_embeddings:
-                shared_embedding = module.model.decoder.embed_tokens.variables["params"]["embedding"]
-                lm_logits = module.lm_head.apply({"params": {"kernel": shared_embedding.T}}, hidden_states)
+                shared_embedding = module.model.decoder.embed_tokens.variables[
+                    "params"
+                ]["embedding"]
+                lm_logits = module.lm_head.apply(
+                    {"params": {"kernel": shared_embedding.T}}, hidden_states
+                )
             else:
                 lm_logits = module.lm_head(hidden_states)
 
@@ -2007,27 +2169,45 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
 
         forced_decoder_ids = []
 
-        if hasattr(generation_config, "is_multilingual") and generation_config.is_multilingual:
+        if (
+            hasattr(generation_config, "is_multilingual")
+            and generation_config.is_multilingual
+        ):
             if hasattr(generation_config, "language"):
-                forced_decoder_ids.append((1, generation_config.lang_to_id[generation_config.language]))
+                forced_decoder_ids.append(
+                    (1, generation_config.lang_to_id[generation_config.language])
+                )
             else:
                 forced_decoder_ids.append((1, None))
 
             if hasattr(generation_config, "task"):
-                forced_decoder_ids.append((2, generation_config.task_to_id[generation_config.task]))
+                forced_decoder_ids.append(
+                    (2, generation_config.task_to_id[generation_config.task])
+                )
             else:
-                forced_decoder_ids.append((2, generation_config.task_to_id["transcribe"]))
+                forced_decoder_ids.append(
+                    (2, generation_config.task_to_id["transcribe"])
+                )
 
         if (
-            hasattr(generation_config, "return_timestamps") and generation_config.return_timestamps
+            hasattr(generation_config, "return_timestamps")
+            and generation_config.return_timestamps
         ) or return_timestamps:
             logits_processor = [
-                FlaxWhisperTimeStampLogitsProcessor(generation_config, self.config, decoder_input_length)
+                FlaxWhisperTimeStampLogitsProcessor(
+                    generation_config, self.config, decoder_input_length
+                )
             ]
         else:
-            if forced_decoder_ids and forced_decoder_ids[-1][0] != generation_config.no_timestamps_token_id:
+            if (
+                forced_decoder_ids
+                and forced_decoder_ids[-1][0]
+                != generation_config.no_timestamps_token_id
+            ):
                 idx = forced_decoder_ids[-1][0] + 1 if forced_decoder_ids else 1
-                forced_decoder_ids.append((idx, generation_config.no_timestamps_token_id))
+                forced_decoder_ids.append(
+                    (idx, generation_config.no_timestamps_token_id)
+                )
 
         if len(forced_decoder_ids) > 0:
             generation_config.forced_decoder_ids = forced_decoder_ids
@@ -2054,10 +2234,14 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
         generation_config.forced_decoder_ids = None
 
         logits_processor = FlaxLogitsProcessorList()
-        logits_processor.append(FlaxStaticForceTokensLogitsProcessor(forced_decoder_ids))
+        logits_processor.append(
+            FlaxStaticForceTokensLogitsProcessor(forced_decoder_ids)
+        )
 
         if hasattr(generation_config, "return_timestamps") and return_timestamps:
-            logits_processor.append(FlaxWhisperTimeStampLogitsProcessor(generation_config, self.config, 1))
+            logits_processor.append(
+                FlaxWhisperTimeStampLogitsProcessor(generation_config, self.config, 1)
+            )
 
         return super().generate(
             input_features,
@@ -2085,9 +2269,13 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
         extended_attention_mask = jnp.ones((batch_size, max_length), dtype="i4")
         if decoder_attention_mask is not None:
             position_ids = decoder_attention_mask.cumsum(-1) - 1
-            extended_attention_mask = lax.dynamic_update_slice(extended_attention_mask, decoder_attention_mask, (0, 0))
+            extended_attention_mask = lax.dynamic_update_slice(
+                extended_attention_mask, decoder_attention_mask, (0, 0)
+            )
         else:
-            position_ids = jnp.broadcast_to(jnp.arange(seq_length, dtype="i4")[None, :], (batch_size, seq_length))
+            position_ids = jnp.broadcast_to(
+                jnp.arange(seq_length, dtype="i4")[None, :], (batch_size, seq_length)
+            )
 
         return {
             "past_key_values": past_key_values,
@@ -2099,7 +2287,9 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
 
     def update_inputs_for_generation(self, model_outputs, model_kwargs):
         model_kwargs["past_key_values"] = model_outputs.past_key_values
-        model_kwargs["decoder_position_ids"] = model_kwargs["decoder_position_ids"][:, -1:] + 1
+        model_kwargs["decoder_position_ids"] = (
+            model_kwargs["decoder_position_ids"][:, -1:] + 1
+        )
         return model_kwargs
 
 

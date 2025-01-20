@@ -49,4 +49,3 @@ setuptools.setup(
         "dev": [_extras_dev_deps],
     },
 )
-

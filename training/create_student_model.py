@@ -24,7 +24,11 @@ import logging
 
 import numpy as np
 import torch
-from transformers import GenerationConfig, WhisperForConditionalGeneration, WhisperProcessor
+from transformers import (
+    GenerationConfig,
+    WhisperForConditionalGeneration,
+    WhisperProcessor,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -99,7 +103,10 @@ def init_student_model_from_teacher(
     cache_dir=None,
     subfolder="",
 ):
-    if decoder_layers_numbers is not None and len(decoder_layers_numbers) != decoder_layers:
+    if (
+        decoder_layers_numbers is not None
+        and len(decoder_layers_numbers) != decoder_layers
+    ):
         raise ValueError(
             f"Got {len(decoder_layers_numbers)} layers number for {decoder_layers} decoder layers."
         )
@@ -121,20 +128,26 @@ def init_student_model_from_teacher(
     student_config = copy.deepcopy(teacher_config)
     student_config.update(
         {
-            "encoder_layers": encoder_layers if encoder_layers is not None else teacher_encoder_layers,
+            "encoder_layers": (
+                encoder_layers if encoder_layers is not None else teacher_encoder_layers
+            ),
             "decoder_layers": decoder_layers,
         }
     )
 
-    encoder_mapping = np.linspace(0, teacher_encoder_layers - 1, student_config.encoder_layers, dtype=int)
+    encoder_mapping = np.linspace(
+        0, teacher_encoder_layers - 1, student_config.encoder_layers, dtype=int
+    )
     encoder_mapping[-1] = teacher_encoder_layers - 1
-    
+
     encoder_map = {}
     for student_layer, teacher_layer in enumerate(encoder_mapping):
         encoder_map[teacher_layer] = student_layer
 
     if decoder_layers_numbers is None:
-        decoder_mapping = np.linspace(0, teacher_decoder_layers - 1, student_config.decoder_layers, dtype=int)
+        decoder_mapping = np.linspace(
+            0, teacher_decoder_layers - 1, student_config.decoder_layers, dtype=int
+        )
         decoder_mapping[-1] = teacher_decoder_layers - 1
     else:
         decoder_mapping = decoder_layers_numbers
@@ -145,7 +158,9 @@ def init_student_model_from_teacher(
 
     # init the student params from the teacher model
     student_model = WhisperForConditionalGeneration(student_config)
-    missing_keys, unexpected_keys = student_model.load_state_dict(teacher_model.state_dict(), strict=False)
+    missing_keys, unexpected_keys = student_model.load_state_dict(
+        teacher_model.state_dict(), strict=False
+    )
     if len(missing_keys) > 0:
         raise RuntimeError(
             "Error(s) in loading state_dict for WhisperForConditionalGeneration. \n"
@@ -165,7 +180,7 @@ def init_student_model_from_teacher(
                 "Error(s) in loading state_dict for WhisperForConditionalGeneration. \n"
                 f"Unexpected key(s) in state_dict: {encoder_keys}"
             )
-        
+
     for layer in range(teacher_decoder_layers):
         if layer in decoder_map:
             # re-introduce pre-defined layers from the teacher
@@ -200,9 +215,14 @@ def init_student_model_from_teacher(
     processor = WhisperProcessor.from_pretrained(save_dir)
 
     # define some random inputs
-    input_features = processor(np.ones(16000), sampling_rate=16000, return_tensors="pt").input_features
+    input_features = processor(
+        np.ones(16000), sampling_rate=16000, return_tensors="pt"
+    ).input_features
     decoder_start_token_id = student_model.config.decoder_start_token_id
-    decoder_input_ids = torch.ones((input_features.shape[0], 1), dtype=torch.long) * decoder_start_token_id
+    decoder_input_ids = (
+        torch.ones((input_features.shape[0], 1), dtype=torch.long)
+        * decoder_start_token_id
+    )
 
     # do a forward pass - outputs will be gibberish for the initialised model so we can't check them
     # but we make can sure the model runs as expected

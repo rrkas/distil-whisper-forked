@@ -1,0 +1,14 @@
+accelerate==1.2.1
+backports.tarfile==1.2.0
+black==24.10.0
+datasets==3.2.0
+importlib-metadata==8.0.0
+ipykernel==6.29.5
+ipython-autotime==0.3.2
+jaraco.collections==5.1.0
+jiwer==3.0.5
+librosa==0.10.2.post1
+pip-chill==1.0.3
+tokenize-rt==6.1.0
+tomli==2.0.1
+transformers==4.48.0

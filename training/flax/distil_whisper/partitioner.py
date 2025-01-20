@@ -99,7 +99,9 @@ def pjit_with_cpu_fallback(
 ):
     """Wrapper for pjit that calls normal jit on cpu."""
     if jax.devices(backend)[0].platform == "cpu":
-        return jax.jit(fun, static_argnums=static_argnums, donate_argnums=donate_argnums)
+        return jax.jit(
+            fun, static_argnums=static_argnums, donate_argnums=donate_argnums
+        )
     else:
         return jax_pjit(
             fun,
@@ -144,7 +146,9 @@ def get_coords(device: JaxDevice) -> HardwareMesh:
 def global_mesh_defined():
     """Checks if global xmap/pjit mesh resource environment is defined."""
     maps_env = jax.experimental.maps.thread_resources.env
-    return maps_env.physical_mesh.devices.shape != ()  # pylint: disable=g-explicit-bool-comparison
+    return (
+        maps_env.physical_mesh.devices.shape != ()
+    )  # pylint: disable=g-explicit-bool-comparison
 
 
 def get_mesh(
@@ -209,7 +213,9 @@ def get_mesh(
         "must be a factor of the corresponding dimension of the global device "
         f"mesh {global_hardware_mesh}"
     )
-    assert not any(g % m for g, m in zip(global_hardware_mesh, model_parallel_submesh)), mesh_err
+    assert not any(
+        g % m for g, m in zip(global_hardware_mesh, model_parallel_submesh)
+    ), mesh_err
     assert not any(g % l for g, l in zip(global_hardware_mesh, local_hardware_mesh))
     devices = np.empty(global_hardware_mesh, dtype=object)
     for device in input_devices:
@@ -218,11 +224,17 @@ def get_mesh(
     tile_by_host = tile_by_host_if_needed
     if len(global_hardware_mesh) == 4:
         # enable contiguous local chunks without host tiling by making Z major
-        global_hardware_mesh = typing.cast(Tuple[int, int, int, int], global_hardware_mesh)
-        model_parallel_submesh = typing.cast(Tuple[int, int, int, int], model_parallel_submesh)
+        global_hardware_mesh = typing.cast(
+            Tuple[int, int, int, int], global_hardware_mesh
+        )
+        model_parallel_submesh = typing.cast(
+            Tuple[int, int, int, int], model_parallel_submesh
+        )
         gx, gy, gz, gc = global_hardware_mesh
         mx, my, mz, mc = model_parallel_submesh
-        if (mx == gx > 1 and my == mz == 1) or (mx == 1 and my == gy > 1 and mz == gz > 1):
+        if (mx == gx > 1 and my == mz == 1) or (
+            mx == 1 and my == gy > 1 and mz == gz > 1
+        ):
             logging.info("ensuring YZ plane has a Z-major device order")
             # YZ should be ZY
             assert mc == gc, (mc, gc)
@@ -230,7 +242,9 @@ def get_mesh(
             model_parallel_submesh = mx, mz, my, mc
             devices = devices.swapaxes(1, 2)
             tile_by_host = False
-        if (my == gy > 1 and mx == mz == 1) or (my == 1 and mx == gx > 1 and mz == gz > 1):
+        if (my == gy > 1 and mx == mz == 1) or (
+            my == 1 and mx == gx > 1 and mz == gz > 1
+        ):
             logging.info("ensuring XZ plane has a Z-major device order")
             # XZ should be ZX
             assert mc == gc, (mc, gc)
@@ -280,7 +294,9 @@ def get_mesh(
             local_hardware_mesh,
         )
         # reshape to e.g. (x_dh, x_dd, x_mh, x_md, y_dh, ...)
-        devices = devices.reshape(*(s for t in dh_dd_mh_md_tups for s in t))  # pylint: disable=g-complex-comprehension
+        devices = devices.reshape(
+            *(s for t in dh_dd_mh_md_tups for s in t)
+        )  # pylint: disable=g-complex-comprehension
         # TODO(jekbradbury): reorder local subgroups for ring locality
         # Transpose to [data_host], [data_device], [model_host], [model_device]
         # block ordering e.g. (x_dh, y_dh, ..., x_dd, y_dd, ...)
@@ -292,12 +308,18 @@ def get_mesh(
         )
     else:
         # e.g. [(x_data, x_model), (y_data, y_model), ...]
-        model_data_tups = [(g // m, m) for g, m in zip(global_hardware_mesh, model_parallel_submesh)]
+        model_data_tups = [
+            (g // m, m) for g, m in zip(global_hardware_mesh, model_parallel_submesh)
+        ]
         # reshape to e.g. (x_data, x_model, y_data, y_model...)
-        devices = devices.reshape(*(s for t in model_data_tups for s in t))  # pylint: disable=g-complex-comprehension
+        devices = devices.reshape(
+            *(s for t in model_data_tups for s in t)
+        )  # pylint: disable=g-complex-comprehension
         # TODO(jekbradbury): reorder small subgroups for ring locality
         # transpose to e.g. (x_data, y_data, ..., x_model, ...)
-        devices = devices.transpose(*(2 * i for i in range(mesh_ndim)), *(2 * i + 1 for i in range(mesh_ndim)))
+        devices = devices.transpose(
+            *(2 * i for i in range(mesh_ndim)), *(2 * i + 1 for i in range(mesh_ndim))
+        )
     # reshape to (data, model)
     devices = devices.reshape(-1, np.prod(model_parallel_submesh))
     global_mesh = Mesh(devices, ["data", "model"])
@@ -411,7 +433,8 @@ def default_mesh(
 
     if mps is None:
         raise ValueError(
-            "No default mesh for this configuration: specify " "config.model_parallel_submesh explicitly."
+            "No default mesh for this configuration: specify "
+            "config.model_parallel_submesh explicitly."
         )
     return get_mesh(mps, backend=backend)
 
@@ -444,8 +467,12 @@ class LocalChunker:
         self.mesh_axes = list(global_mesh.shape.keys())
         for mesh_axis in self.mesh_axes:
             num_devices_per_chunk = local_mesh.shape[mesh_axis]
-            self.num_chunks[mesh_axis] = global_mesh.shape[mesh_axis] // num_devices_per_chunk
-            self.chunk_ids[mesh_axis] = host_location[mesh_axis] // num_devices_per_chunk
+            self.num_chunks[mesh_axis] = (
+                global_mesh.shape[mesh_axis] // num_devices_per_chunk
+            )
+            self.chunk_ids[mesh_axis] = (
+                host_location[mesh_axis] // num_devices_per_chunk
+            )
 
     def get_local_chunk_info(
         self, global_shape: Tuple[int, ...], mesh_axes: Sequence[Optional[str]]
@@ -475,7 +502,11 @@ class LocalChunker:
             chunk_size = size // self.num_chunks[mesh_axis]
             local_slice[i] = slice(chunk_id * chunk_size, (chunk_id + 1) * chunk_size)
 
-        replicated_mesh_axes = [mesh_axis for mesh_axis in self.mesh_axes if mesh_axis not in sharded_mesh_axes]
+        replicated_mesh_axes = [
+            mesh_axis
+            for mesh_axis in self.mesh_axes
+            if mesh_axis not in sharded_mesh_axes
+        ]
         replica_id = 0
         for mesh_axis in replicated_mesh_axes:
             chunk_id = self.chunk_ids[mesh_axis]
@@ -625,7 +656,10 @@ class BasePartitioner(metaclass=abc.ABCMeta):
         """
 
         if not num_partitions and not model_parallel_submesh:
-            raise ValueError("At least one of `num_partitions` or " "`model_parallel_submesh` must be set.")
+            raise ValueError(
+                "At least one of `num_partitions` or "
+                "`model_parallel_submesh` must be set."
+            )
 
         if model_parallel_submesh is not None and len(model_parallel_submesh) != 4:
             logging.error(
@@ -662,7 +696,9 @@ class BasePartitioner(metaclass=abc.ABCMeta):
     def data_partition_spec(self) -> PartitionSpec:
         return PartitionSpec(self._data_axis)
 
-    def get_data_layout(self, batch_size: Optional[int] = None, host_index: Optional[int] = None) -> DataLayout:
+    def get_data_layout(
+        self, batch_size: Optional[int] = None, host_index: Optional[int] = None
+    ) -> DataLayout:
         """Returns filled `DataLayout` based on the partitioned model layout.
 
         Args:
@@ -690,12 +726,18 @@ class BasePartitioner(metaclass=abc.ABCMeta):
         batch_size = batch_size or mesh_size
         if batch_size % mesh_size:
             raise ValueError(
-                f"Batch size ({batch_size}) must be divisible by corresponding " f"mesh size ({mesh_size})."
+                f"Batch size ({batch_size}) must be divisible by corresponding "
+                f"mesh size ({mesh_size})."
             )
         num_shards = self._local_chunker.num_chunks[self._data_axis]
         if batch_size % num_shards:
-            raise ValueError(f"Batch size ({batch_size}) must be divisible by number of " f"replicas ({num_shards}).")
-        replica_id = self._local_chunker.get_local_chunk_info((batch_size,), [self._data_axis]).replica_id
+            raise ValueError(
+                f"Batch size ({batch_size}) must be divisible by number of "
+                f"replicas ({num_shards})."
+            )
+        replica_id = self._local_chunker.get_local_chunk_info(
+            (batch_size,), [self._data_axis]
+        ).replica_id
         return DataLayout(
             batch_size=int(batch_size),
             shard_id=int(self._local_chunker.chunk_ids[self._data_axis]),
@@ -713,7 +755,9 @@ class BasePartitioner(metaclass=abc.ABCMeta):
     def params_on_devices(self):
         return self._params_on_devices
 
-    def move_params_to_devices(self, train_state: TrainState, train_state_axes: TrainState) -> TrainState:
+    def move_params_to_devices(
+        self, train_state: TrainState, train_state_axes: TrainState
+    ) -> TrainState:
         """Moves the optimizer parameters to devices."""
         p_id_fn = self.partition(
             _id_fn,
@@ -722,7 +766,9 @@ class BasePartitioner(metaclass=abc.ABCMeta):
             donate_argnums=(0,),
         )
         if jax.config.jax_array and jax.process_count() > 1:
-            train_state = multihost_utils.host_local_array_to_global_array(train_state, self.mesh, train_state_axes)
+            train_state = multihost_utils.host_local_array_to_global_array(
+                train_state, self.mesh, train_state_axes
+            )
         train_state, _ = p_id_fn(train_state, jnp.ones((), dtype=jnp.uint32))
         return train_state
 
@@ -735,7 +781,9 @@ class BasePartitioner(metaclass=abc.ABCMeta):
     def get_logical_axes(self, train_state: TrainState) -> TrainState:
         """Returns a copy of TrainState with Optional[AxisNames] as leaves."""
         # By default, return None for the logical axes.
-        return train_state.restore_state(jax.tree_map(lambda x: None, train_state.state_dict()))
+        return train_state.restore_state(
+            jax.tree_map(lambda x: None, train_state.state_dict())
+        )
 
     def get_mesh_axes(self, train_state: TrainState) -> TrainState:
         """Returns a copy of TrainState with Optional[PartitionSpecs] as leaves."""
@@ -781,7 +829,9 @@ class BasePartitioner(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def compile(self, partitioned_fn: PartitionedCallable, *args) -> CompiledPartitionedCallable:
+    def compile(
+        self, partitioned_fn: PartitionedCallable, *args
+    ) -> CompiledPartitionedCallable:
         """Compiles and returns the partitioned function, or the original.
 
         Args:
@@ -810,11 +860,15 @@ class PjittedFnWithContext(PartitionedCallable):
         self._logical_axis_rules = logical_axis_rules
 
     def __call__(self, *args):
-        with Mesh(self._mesh.devices, self._mesh.axis_names), flax_partitioning.axis_rules(self._logical_axis_rules):
+        with Mesh(
+            self._mesh.devices, self._mesh.axis_names
+        ), flax_partitioning.axis_rules(self._logical_axis_rules):
             return self._pjitted_fn(*args)
 
     def lower(self, *args):
-        with Mesh(self._mesh.devices, self._mesh.axis_names), flax_partitioning.axis_rules(self._logical_axis_rules):
+        with Mesh(
+            self._mesh.devices, self._mesh.axis_names
+        ), flax_partitioning.axis_rules(self._logical_axis_rules):
             return self._pjitted_fn.lower(*args)
 
 
@@ -827,7 +881,9 @@ class BasePjitPartitioner(BasePartitioner):
 
     @cached_property
     def mesh(self) -> Mesh:
-        return default_mesh(self._num_partitions, self._model_parallel_submesh, self._backend)
+        return default_mesh(
+            self._num_partitions, self._model_parallel_submesh, self._backend
+        )
 
     def partition(
         self,
@@ -848,7 +904,9 @@ class BasePjitPartitioner(BasePartitioner):
 
         return PjittedFnWithContext(pjitted, self.mesh)
 
-    def compile(self, partitioned_fn: PjittedFnWithContext, *args) -> CompiledPartitionedCallable:
+    def compile(
+        self, partitioned_fn: PjittedFnWithContext, *args
+    ) -> CompiledPartitionedCallable:
         return partitioned_fn.lower(*args).compile()
 
 
@@ -909,7 +967,9 @@ class PjitPartitioner(BasePjitPartitioner):
         if logical_axis_rules is None:
             logical_axis_rules = standard_logical_axis_rules()
         self._logical_axis_rules = tuple(logical_axis_rules)
-        (self._data_axis,) = flax_partitioning.logical_to_mesh_axes(["batch"], logical_axis_rules)
+        (self._data_axis,) = flax_partitioning.logical_to_mesh_axes(
+            ["batch"], logical_axis_rules
+        )
         self._use_cpu_pjit = use_cpu_pjit
 
     def partition(
@@ -955,11 +1015,19 @@ class PjitPartitioner(BasePjitPartitioner):
             elif logical_axes is traverse_util.empty_node:
                 return traverse_util.empty_node
             try:
-                return flax_partitioning.logical_to_mesh_axes(logical_axes, self._logical_axis_rules)
+                return flax_partitioning.logical_to_mesh_axes(
+                    logical_axes, self._logical_axis_rules
+                )
             except ValueError as e:
                 raise ValueError(f"Failed to map logical axes for {param_name}") from e
 
-        flat_logical_axes = traverse_util.flatten_dict(logical_axes.state_dict(), keep_empty_nodes=True, sep="/")
-        flat_mesh_axes = {k: _logical_to_mesh_axes(k, v) for k, v in flat_logical_axes.items()}
+        flat_logical_axes = traverse_util.flatten_dict(
+            logical_axes.state_dict(), keep_empty_nodes=True, sep="/"
+        )
+        flat_mesh_axes = {
+            k: _logical_to_mesh_axes(k, v) for k, v in flat_logical_axes.items()
+        }
 
-        return logical_axes.restore_state(traverse_util.unflatten_dict(flat_mesh_axes, sep="/"))
+        return logical_axes.restore_state(
+            traverse_util.unflatten_dict(flat_mesh_axes, sep="/")
+        )

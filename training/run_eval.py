@@ -41,7 +41,10 @@ from transformers import (
     pipeline,
     set_seed,
 )
-from transformers.models.whisper.english_normalizer import EnglishTextNormalizer, BasicTextNormalizer
+from transformers.models.whisper.english_normalizer import (
+    EnglishTextNormalizer,
+    BasicTextNormalizer,
+)
 from transformers.modeling_outputs import BaseModelOutput
 from transformers.models.whisper.modeling_whisper import WhisperForCausalLM
 from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
@@ -74,19 +77,27 @@ class DataTrainingArguments:
     )
     model_name_or_path: str = field(
         default=None,
-        metadata={"help": "The name of the model to use (via the transformers library). "},
+        metadata={
+            "help": "The name of the model to use (via the transformers library). "
+        },
     )
     subfolder: str = field(
         default="",
-        metadata={"help": "If specified load weights from a subfolder in the model repository"},
+        metadata={
+            "help": "If specified load weights from a subfolder in the model repository"
+        },
     )
     model_variant: str = field(
         default=None,
-        metadata={"help": "If specified load weights from `variant` filename, *e.g.* pytorch_model.<variant>.bin. "},
+        metadata={
+            "help": "If specified load weights from `variant` filename, *e.g.* pytorch_model.<variant>.bin. "
+        },
     )
     cache_dir: Optional[str] = field(
         default=None,
-        metadata={"help": "Where to store the pretrained models downloaded from huggingface.co"},
+        metadata={
+            "help": "Where to store the pretrained models downloaded from huggingface.co"
+        },
     )
     assistant_model_name_or_path: str = field(
         default=None,
@@ -108,7 +119,8 @@ class DataTrainingArguments:
         metadata={"help": "Whether to evaluate with Transformers pipeline"},
     )
     chunk_length_s: float = field(
-        default=30.0, metadata={"help": "Chunk length to use when `use_pipeline` is enabled."}
+        default=30.0,
+        metadata={"help": "Chunk length to use when `use_pipeline` is enabled."},
     )
     return_timestamps: bool = field(
         default=True,
@@ -134,7 +146,9 @@ class DataTrainingArguments:
     )
     attn_implementation: Optional[str] = field(
         default=None,
-        metadata={"help": "Which attn type to use: ['eager', 'sdpa', 'flash_attention_2']"},
+        metadata={
+            "help": "Which attn type to use: ['eager', 'sdpa', 'flash_attention_2']"
+        },
     )
     batch_size: int = field(
         default=1,
@@ -142,7 +156,9 @@ class DataTrainingArguments:
     )
     num_beams: int = field(
         default=1,
-        metadata={"help": "The beam size to be used for evaluation. Set to 1 for greedy, or >1 for beam search."},
+        metadata={
+            "help": "The beam size to be used for evaluation. Set to 1 for greedy, or >1 for beam search."
+        },
     )
     temperature_fallback: bool = field(
         default=True,
@@ -180,11 +196,15 @@ class DataTrainingArguments:
     )
     dataset_config_name: Optional[str] = field(
         default=None,
-        metadata={"help": "The configuration name of the dataset to use (via the datasets library)."},
+        metadata={
+            "help": "The configuration name of the dataset to use (via the datasets library)."
+        },
     )
     dataset_split_name: Optional[str] = field(
         default=None,
-        metadata={"help": "The split name of the dataset to use (via the datasets library)."},
+        metadata={
+            "help": "The split name of the dataset to use (via the datasets library)."
+        },
     )
     dataset_cache_dir: Optional[str] = field(
         default=None,
@@ -200,18 +220,25 @@ class DataTrainingArguments:
     )
     audio_column_name: str = field(
         default="audio",
-        metadata={"help": "The name of the dataset column containing the audio data. Defaults to 'audio'"},
+        metadata={
+            "help": "The name of the dataset column containing the audio data. Defaults to 'audio'"
+        },
     )
     text_column_name: str = field(
         default=None,
-        metadata={"help": "The name of the dataset column containing the text data. Defaults to `text`."},
+        metadata={
+            "help": "The name of the dataset column containing the text data. Defaults to `text`."
+        },
     )
     generation_max_length: int = field(
-        default=256, metadata={"help": "Generate up until `generation_max_length` tokens."}
+        default=256,
+        metadata={"help": "Generate up until `generation_max_length` tokens."},
     )
     log_predictions: Optional[bool] = field(
         default=True,
-        metadata={"help": "Whether or not to log the ground truths / pred text to the wandb logger."},
+        metadata={
+            "help": "Whether or not to log the ground truths / pred text to the wandb logger."
+        },
     )
     preprocessing_only: bool = field(
         default=False,
@@ -254,16 +281,22 @@ class DataTrainingArguments:
     )
     streaming: bool = field(
         default=True,
-        metadata={"help": "Whether to use Datasets' streaming mode to load and the data."},
+        metadata={
+            "help": "Whether to use Datasets' streaming mode to load and the data."
+        },
     )
     max_eval_samples: Optional[int] = field(
         default=None,
-        metadata={"help": "For debugging purposes, truncate the number of eval examples to this value if set."},
+        metadata={
+            "help": "For debugging purposes, truncate the number of eval examples to this value if set."
+        },
     )
     seed: int = field(default=42, metadata={"help": "RNG seed for reproducibility."})
     use_fast_tokenizer: bool = field(
         default=True,
-        metadata={"help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."},
+        metadata={
+            "help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."
+        },
     )
     prompt_text: str = field(
         default=None,
@@ -276,35 +309,34 @@ class DataTrainingArguments:
         metadata={
             "help": (
                 "If True, compute tok/sec by forcing the number of generated token ids to num_tokens on dummy batches. "
-                "If False, computes tok/sec over the entire dataset with variable number of generated tokens."  
+                "If False, computes tok/sec over the entire dataset with variable number of generated tokens."
             )
-        }
+        },
     )
     num_tokens: int = field(
         default=20,
         metadata={
             "help": "Number of tokens to generate if computing tok/sec with precise_tok_per_s."
-        }
+        },
     )
     num_batches: int = field(
         default=100,
         metadata={
             "help": "Number of batches for the tok/sec calculation with precise_tok_per_s"
-        }
+        },
     )
     only_short_form: bool = field(
         default=False,
         metadata={
-            "help": "Whether the evaluation should be only short form (filter out samples > 30sec)." 
-        }
+            "help": "Whether the evaluation should be only short form (filter out samples > 30sec)."
+        },
     )
     only_long_form: bool = field(
         default=False,
         metadata={
-            "help": "Whether the evaluation should be only long form (filter out samples <= 30sec)." 
-        }
+            "help": "Whether the evaluation should be only long form (filter out samples <= 30sec)."
+        },
     )
-
 
 
 def write_metric(summary_writer, eval_metrics, step, prefix="eval"):
@@ -331,7 +363,13 @@ def write_wandb_pred(
     columns = ["WER", "Target", "Pred", "Norm Target", "Norm Pred"]
     # convert str data to a wandb compatible format
     str_data = [
-        [wer_per_sample[i], label_str[i], pred_str[i], norm_label_str[i], norm_pred_str[i]]
+        [
+            wer_per_sample[i],
+            label_str[i],
+            pred_str[i],
+            norm_label_str[i],
+            norm_pred_str[i],
+        ]
         for i in range(len(pred_str))
     ]
 
@@ -342,7 +380,12 @@ def write_wandb_pred(
 
 
 def convert_dataset_str_to_list(
-    dataset_names, dataset_config_names, splits=None, text_column_names=None, dataset_hours=None, default_split="train"
+    dataset_names,
+    dataset_config_names,
+    splits=None,
+    text_column_names=None,
+    dataset_hours=None,
+    default_split="train",
 ):
     if isinstance(dataset_names, str):
         dataset_names = dataset_names.split("+")
@@ -350,15 +393,25 @@ def convert_dataset_str_to_list(
         # we assume that all the datasets we're using derive from the distil-whisper org on the Hub - prepend the org name if necessary
         for i in range(len(dataset_names)):
             ds_name = dataset_names[i]
-            dataset_names[i] = f"distil-whisper/{ds_name}" if "/" not in ds_name else ds_name
+            dataset_names[i] = (
+                f"distil-whisper/{ds_name}" if "/" not in ds_name else ds_name
+            )
 
-        dataset_config_names = dataset_config_names.split("+") if dataset_config_names is not None else None
+        dataset_config_names = (
+            dataset_config_names.split("+")
+            if dataset_config_names is not None
+            else None
+        )
         splits = splits.split("+") if splits is not None else None
-        text_column_names = text_column_names.split("+") if text_column_names is not None else None
+        text_column_names = (
+            text_column_names.split("+") if text_column_names is not None else None
+        )
         dataset_hours = dataset_hours.split("+") if dataset_hours is not None else None
 
     # basic checks to ensure we've got the right number of datasets/configs/splits/columns/probs
-    if dataset_config_names is not None and len(dataset_names) != len(dataset_config_names):
+    if dataset_config_names is not None and len(dataset_names) != len(
+        dataset_config_names
+    ):
         raise ValueError(
             f"Ensure one config is passed for each dataset, got {len(dataset_names)} datasets and"
             f" {len(dataset_config_names)} configs."
@@ -386,12 +439,20 @@ def convert_dataset_str_to_list(
         dataset_hours = [None] * len(dataset_names)
 
     dataset_config_names = (
-        dataset_config_names if dataset_config_names is not None else ["default" for _ in range(len(dataset_names))]
+        dataset_config_names
+        if dataset_config_names is not None
+        else ["default" for _ in range(len(dataset_names))]
     )
     text_column_names = (
-        text_column_names if text_column_names is not None else ["text" for _ in range(len(dataset_names))]
+        text_column_names
+        if text_column_names is not None
+        else ["text" for _ in range(len(dataset_names))]
     )
-    splits = splits if splits is not None else [default_split for _ in range(len(dataset_names))]
+    splits = (
+        splits
+        if splits is not None
+        else [default_split for _ in range(len(dataset_names))]
+    )
 
     dataset_names_dict = []
     for i, ds_name in enumerate(dataset_names):
@@ -457,7 +518,9 @@ def main():
     set_seed(data_args.seed)
 
     if data_args.use_pipeline and data_args.batch_size > 1:
-        raise ValueError("Make sure that `batch_size` is set to 1 when `use_pipeline=True`.")
+        raise ValueError(
+            "Make sure that `batch_size` is set to 1 when `use_pipeline=True`."
+        )
 
     has_wandb = is_wandb_available()
     if has_wandb:
@@ -495,7 +558,9 @@ def main():
         )
 
     else:
-        raise ValueError("Wandb logging requires wandb to be installed. Run `pip install wandb` to enable.")
+        raise ValueError(
+            "Wandb logging requires wandb to be installed. Run `pip install wandb` to enable."
+        )
 
     # 3. Load dataset
     raw_datasets = IterableDatasetDict()
@@ -520,12 +585,16 @@ def main():
             streaming=data_args.streaming,
             num_proc=data_args.preprocessing_num_workers,
         )
-        
+
         if data_args.only_short_form:
-            sub_dataset = sub_dataset.filter(lambda x: len(x["audio"]["array"]) / x["audio"]["sampling_rate"] <= 30)
+            sub_dataset = sub_dataset.filter(
+                lambda x: len(x["audio"]["array"]) / x["audio"]["sampling_rate"] <= 30
+            )
 
         if data_args.only_long_form:
-            sub_dataset = sub_dataset.filter(lambda x: len(x["audio"]["array"]) / x["audio"]["sampling_rate"] > 30)
+            sub_dataset = sub_dataset.filter(
+                lambda x: len(x["audio"]["array"]) / x["audio"]["sampling_rate"] > 30
+            )
 
         if dataset_dict["text_column_name"] not in list(sub_dataset.features.keys()):
             raise ValueError(
@@ -534,10 +603,12 @@ def main():
                 f"for the target text. Should be one of {' '.join(list(sub_dataset.features.keys()))}"
             )
         if dataset_dict["text_column_name"] != "text":
-            sub_dataset = sub_dataset.rename_column(dataset_dict["text_column_name"], "text")
+            sub_dataset = sub_dataset.rename_column(
+                dataset_dict["text_column_name"], "text"
+            )
         if not data_args.streaming:
             sub_dataset = sub_dataset.to_iterable_dataset()
-        
+
         # Clean-up the dataset name for pretty logging
         # ("distil-whisper/librispeech_asr", "validation.clean") -> "librispeech_asr/validation-clean"
         pretty_name = f"{dataset_dict['name'].split('/')[-1]}/{dataset_dict['split'].replace('.', '-')}"
@@ -602,15 +673,23 @@ def main():
     # so we just need to set the correct target sampling rate.
     raw_datasets = raw_datasets.cast_column(
         data_args.audio_column_name,
-        datasets.features.Audio(sampling_rate=processor.feature_extractor.sampling_rate),
+        datasets.features.Audio(
+            sampling_rate=processor.feature_extractor.sampling_rate
+        ),
     )
 
     # 7. Preprocessing the datasets.
     # We need to read the audio files as arrays and tokenize the targets.
     audio_column_name = data_args.audio_column_name
-    language = language_to_id(data_args.language, model.generation_config) if data_args.language else None
+    language = (
+        language_to_id(data_args.language, model.generation_config)
+        if data_args.language
+        else None
+    )
     if language is None or language == "<|en|>":
-        normalizer = EnglishTextNormalizer(processor.tokenizer.english_spelling_normalizer)
+        normalizer = EnglishTextNormalizer(
+            processor.tokenizer.english_spelling_normalizer
+        )
     else:
         normalizer = BasicTextNormalizer()
 
@@ -618,11 +697,15 @@ def main():
 
     if data_args.samples_per_dataset is not None:
         for split in raw_datasets:
-            raw_datasets[split] = raw_datasets[split].take(data_args.samples_per_dataset)
+            raw_datasets[split] = raw_datasets[split].take(
+                data_args.samples_per_dataset
+            )
 
     def prepare_dataset(batch):
         # process audio
-        audio = [sample["array"].astype(np.float32) for sample in batch[audio_column_name]]
+        audio = [
+            sample["array"].astype(np.float32) for sample in batch[audio_column_name]
+        ]
 
         if model_pipeline is None:
             inputs = processor.feature_extractor(
@@ -681,8 +764,16 @@ def main():
         norm_label_str = [normalizer(label) for label in label_str]
 
         # filtering step to only evaluate the samples that correspond to non-zero normalized references:
-        norm_pred_str = [norm_pred_str[i] for i in range(len(norm_pred_str)) if len(norm_label_str[i]) > 0]
-        norm_label_str = [norm_label_str[i] for i in range(len(norm_label_str)) if len(norm_label_str[i]) > 0]
+        norm_pred_str = [
+            norm_pred_str[i]
+            for i in range(len(norm_pred_str))
+            if len(norm_label_str[i]) > 0
+        ]
+        norm_label_str = [
+            norm_label_str[i]
+            for i in range(len(norm_label_str))
+            if len(norm_label_str[i]) > 0
+        ]
 
         wer = 100 * metric.compute(predictions=norm_pred_str, references=norm_label_str)
         return wer
@@ -694,7 +785,10 @@ def main():
         "top_k": 0,
     }
 
-    if hasattr(model.generation_config, "is_multilingual") and model.generation_config.is_multilingual:
+    if (
+        hasattr(model.generation_config, "is_multilingual")
+        and model.generation_config.is_multilingual
+    ):
         gen_kwargs["language"] = data_args.language
         gen_kwargs["task"] = data_args.task
     elif data_args.language is not None:
@@ -707,20 +801,24 @@ def main():
         gen_kwargs["assistant_model"] = assistant_model
 
     if data_args.prompt_text is not None:
-        gen_kwargs["prompt_ids"] = processor.get_prompt_ids(data_args.prompt_text, return_tensors="pt").to("cuda:0")
+        gen_kwargs["prompt_ids"] = processor.get_prompt_ids(
+            data_args.prompt_text, return_tensors="pt"
+        ).to("cuda:0")
 
     long_form_gen_kwargs = {
         "condition_on_prev_tokens": data_args.condition_on_prev_tokens,
         "compression_ratio_threshold": data_args.compression_ratio_threshold,
-        "temperature": (0.0, 0.2, 0.4, 0.6, 0.8, 1.0) if data_args.temperature_fallback else 0,
+        "temperature": (
+            (0.0, 0.2, 0.4, 0.6, 0.8, 1.0) if data_args.temperature_fallback else 0
+        ),
         "logprob_threshold": data_args.logprob_threshold,
         "no_speech_threshold": data_args.no_speech_threshold,
     }
 
     forced_decoder_ids = processor.get_decoder_prompt_ids(
-        task=data_args.task, 
-        language=data_args.language, 
-        no_timestamps=not data_args.return_timestamps
+        task=data_args.task,
+        language=data_args.language,
+        no_timestamps=not data_args.return_timestamps,
     )
 
     def benchmark(batch):
@@ -736,17 +834,25 @@ def main():
 
             set_seed(data_args.seed)
             start_time = time.time()
-            output_ids = model.generate(inputs, attention_mask=attention_mask, **batch_gen_kwargs)
+            output_ids = model.generate(
+                inputs, attention_mask=attention_mask, **batch_gen_kwargs
+            )
             gen_time = time.time() - start_time
 
             batch["time"] = inner_batch_size * [(gen_time) / inner_batch_size]
 
             if not data_args.precise_tok_per_s:
-                n_generated_tokens = output_ids.numel() - inner_batch_size * len(forced_decoder_ids)
-                batch["tokens_per_sec"] = inner_batch_size * [(n_generated_tokens / gen_time) / inner_batch_size]
+                n_generated_tokens = output_ids.numel() - inner_batch_size * len(
+                    forced_decoder_ids
+                )
+                batch["tokens_per_sec"] = inner_batch_size * [
+                    (n_generated_tokens / gen_time) / inner_batch_size
+                ]
 
             batch["transcription"] = processor.batch_decode(
-                output_ids, skip_special_tokens=True, decode_with_timestamps=data_args.return_timestamps
+                output_ids,
+                skip_special_tokens=True,
+                decode_with_timestamps=data_args.return_timestamps,
             )
 
         else:
@@ -760,24 +866,20 @@ def main():
                 result = model_pipeline_forward(*args, **kwargs)
                 end_time = time.time() - start_time
                 time_result.append(end_time)
-                for toks in result['tokens']:
+                for toks in result["tokens"]:
                     n_generated_tokens.append(len(toks) - len(forced_decoder_ids))
                 return result
 
             model_pipeline._forward = _forward_time
 
             result = model_pipeline(
-                inputs, 
-                batch_size=PIPELINE_BATCH_SIZE, 
-                generate_kwargs={
-                    **gen_kwargs
-                }
+                inputs, batch_size=PIPELINE_BATCH_SIZE, generate_kwargs={**gen_kwargs}
             )[0]["text"]
 
             if not data_args.precise_tok_per_s:
                 n_generated_tokens = sum(n_generated_tokens)
                 gen_time = time_result[0]
-                batch["tokens_per_sec"] = [n_generated_tokens / gen_time] 
+                batch["tokens_per_sec"] = [n_generated_tokens / gen_time]
 
             batch["transcription"] = [result]
             batch["time"] = [sum(time_result)]
@@ -809,13 +911,18 @@ def main():
         for _ in range(num_batches):
 
             dummy_encoder_outputs = BaseModelOutput(
-                    torch.randn((data_args.batch_size, model.config.max_source_positions, model.config.d_model),
-                                dtype=model.dtype,
-                                device=model.device
-                    )            
+                torch.randn(
+                    (
+                        data_args.batch_size,
+                        model.config.max_source_positions,
+                        model.config.d_model,
+                    ),
+                    dtype=model.dtype,
+                    device=model.device,
                 )
+            )
             n_tokens = data_args.num_tokens
-            
+
             if model_pipeline is None:
                 # benchmark time to generate fixed number of tokens
                 start_time = time.time()
@@ -823,10 +930,10 @@ def main():
                     encoder_outputs=dummy_encoder_outputs,
                     min_new_tokens=n_tokens,
                     max_new_tokens=n_tokens,
-                    **gen_kwargs
+                    **gen_kwargs,
                 )
                 gen_time = time.time() - start_time
-            
+
             else:
                 # benchmark time to generate fixed number of tokens
                 start_time = time.time()
@@ -834,7 +941,7 @@ def main():
                     encoder_outputs=dummy_encoder_outputs,
                     min_new_tokens=n_tokens,
                     max_new_tokens=n_tokens,
-                    **gen_kwargs
+                    **gen_kwargs,
                 )
                 gen_time = time.time() - start_time
 
@@ -849,7 +956,7 @@ def main():
 
     datasets_evaluated_progress_bar = tqdm(result_datasets, desc="Datasets", position=0)
     for split in datasets_evaluated_progress_bar:
-        
+
         transcriptions = []
         references = []
         stats = {}
@@ -868,7 +975,9 @@ def main():
             times_transcription_total += result["time"]
             # ensure prompt is removed from the transcription (awaiting fix in Transformers)
             if data_args.prompt_text is not None:
-                result["transcription"] = result["transcription"].replace(data_args.prompt_text, "")
+                result["transcription"] = result["transcription"].replace(
+                    data_args.prompt_text, ""
+                )
             transcriptions.append(result["transcription"])
             references.append(result["reference"])
             if not data_args.precise_tok_per_s:
@@ -877,13 +986,25 @@ def main():
         norm_transcriptions = [normalizer(pred) for pred in transcriptions]
         norm_references = [normalizer(label) for label in references]
 
-        transcriptions = [transcriptions[i] for i in range(len(transcriptions)) if len(norm_references[i]) > 0]
-        references = [references[i] for i in range(len(references)) if len(norm_references[i]) > 0]
+        transcriptions = [
+            transcriptions[i]
+            for i in range(len(transcriptions))
+            if len(norm_references[i]) > 0
+        ]
+        references = [
+            references[i] for i in range(len(references)) if len(norm_references[i]) > 0
+        ]
 
         norm_transcriptions = [
-            norm_transcriptions[i] for i in range(len(norm_transcriptions)) if len(norm_references[i]) > 0
+            norm_transcriptions[i]
+            for i in range(len(norm_transcriptions))
+            if len(norm_references[i]) > 0
         ]
-        norm_references = [norm_references[i] for i in range(len(norm_references)) if len(norm_references[i]) > 0]
+        norm_references = [
+            norm_references[i]
+            for i in range(len(norm_references))
+            if len(norm_references[i]) > 0
+        ]
 
         stats["wer"] = compute_metrics(norm_transcriptions, norm_references)
 
@@ -892,7 +1013,7 @@ def main():
             wer_per_sample.append(compute_metrics([pred], [ref]))
 
         stats["rtf"] = times_audio_total / times_transcription_total
-        stats["tokens_per_sec"] = sum(tokens_per_secs) / len(tokens_per_secs) 
+        stats["tokens_per_sec"] = sum(tokens_per_secs) / len(tokens_per_secs)
         stats_dataset[split] = stats
 
         wer_desc = " ".join([f"Eval {key}: {value} |" for key, value in stats.items()])
@@ -918,7 +1039,9 @@ def main():
 
     all_stats["wer"] = all_stats["wer"] / len(result_datasets)
     # technically this is the reciprocal of the RTF, but it makes the scale easier to read on wandb
-    all_stats["rtf"] = rtf_stats["times_audio_total"] / rtf_stats["times_transcription_total"]
+    all_stats["rtf"] = (
+        rtf_stats["times_audio_total"] / rtf_stats["times_transcription_total"]
+    )
     all_stats["tokens_per_sec"] = all_stats["tokens_per_sec"] / len(result_datasets)
 
     stats_dataset["all"] = all_stats

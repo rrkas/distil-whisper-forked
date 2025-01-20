@@ -46,7 +46,9 @@ class FlaxWhisperFeatureExtractor(WhisperFeatureExtractor):
         waveform = torch.from_numpy(waveform).type(torch.float32)
 
         window = torch.hann_window(self.n_fft)
-        stft = torch.stft(waveform, self.n_fft, self.hop_length, window=window, return_complex=True)
+        stft = torch.stft(
+            waveform, self.n_fft, self.hop_length, window=window, return_complex=True
+        )
         magnitudes = stft[..., :-1].abs() ** 2
 
         mel_filters = torch.from_numpy(self.mel_filters).type(torch.float32)
@@ -86,7 +88,9 @@ class FlaxWhisperPipeline:
         self.checkpoint = checkpoint
         self.dtype = dtype
 
-        self.feature_extractor = FlaxWhisperFeatureExtractor.from_pretrained(self.checkpoint)
+        self.feature_extractor = FlaxWhisperFeatureExtractor.from_pretrained(
+            self.checkpoint
+        )
         self.tokenizer = WhisperTokenizerFast.from_pretrained(self.checkpoint)
 
         self.model, self.params = FlaxWhisperForConditionalGeneration.from_pretrained(
@@ -96,7 +100,11 @@ class FlaxWhisperPipeline:
             **kwargs,
         )
 
-        self.max_length = max_length if max_length is not None else self.model.generation_config.max_length
+        self.max_length = (
+            max_length
+            if max_length is not None
+            else self.model.generation_config.max_length
+        )
         self.min_batch_size = jax.local_device_count()
         self.batch_size = (
             batch_size if batch_size is not None else self.min_batch_size
@@ -172,7 +180,9 @@ class FlaxWhisperPipeline:
         output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
         return output_ids
 
-    def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):
+    def get_forced_decoder_ids(
+        self, generation_config=None, task=None, language=None, return_timestamps=False
+    ):
         if generation_config is None:
             generation_config = self.model.generation_config
 
@@ -203,25 +213,38 @@ class FlaxWhisperPipeline:
                         # language passed as a string
                         acceptable_languages = list(TO_LANGUAGE_CODE.keys())
                     raise ValueError(
-                        f"Unsupported language: {language}. Language should be one of:" f" {acceptable_languages}."
+                        f"Unsupported language: {language}. Language should be one of:"
+                        f" {acceptable_languages}."
                     )
-                forced_decoder_ids.append((1, generation_config.lang_to_id[language_token]))
+                forced_decoder_ids.append(
+                    (1, generation_config.lang_to_id[language_token])
+                )
 
             if task is not None:
                 forced_decoder_ids.append((2, generation_config.task_to_id[task]))
             else:
-                forced_decoder_ids.append((2, generation_config.task_to_id["transcribe"]))
+                forced_decoder_ids.append(
+                    (2, generation_config.task_to_id["transcribe"])
+                )
 
         if not return_timestamps:
-            if forced_decoder_ids and forced_decoder_ids[-1][0] != generation_config.no_timestamps_token_id:
+            if (
+                forced_decoder_ids
+                and forced_decoder_ids[-1][0]
+                != generation_config.no_timestamps_token_id
+            ):
                 idx = forced_decoder_ids[-1][0] + 1 if forced_decoder_ids else 1
-                forced_decoder_ids.append((idx, generation_config.no_timestamps_token_id))
+                forced_decoder_ids.append(
+                    (idx, generation_config.no_timestamps_token_id)
+                )
             else:
                 forced_decoder_ids.append((1, generation_config.no_timestamps_token_id))
 
         return forced_decoder_ids
 
-    def chunk_iter_with_batch(self, inputs, chunk_len, stride_left, stride_right, batch_size):
+    def chunk_iter_with_batch(
+        self, inputs, chunk_len, stride_left, stride_right, batch_size
+    ):
         inputs_len = inputs.shape[0]
         step = chunk_len - stride_left - stride_right
 
@@ -236,24 +259,37 @@ class FlaxWhisperPipeline:
 
             chunk_end_idx = chunk_start_idx + chunk_len
 
-            chunks = [inputs[chunk_start:chunk_end] for chunk_start, chunk_end in zip(chunk_start_idx, chunk_end_idx)]
+            chunks = [
+                inputs[chunk_start:chunk_end]
+                for chunk_start, chunk_end in zip(chunk_start_idx, chunk_end_idx)
+            ]
             processed = self.feature_extractor(
-                chunks, sampling_rate=self.feature_extractor.sampling_rate, return_tensors="np"
+                chunks,
+                sampling_rate=self.feature_extractor.sampling_rate,
+                return_tensors="np",
             )
 
             _stride_left = np.where(chunk_start_idx == 0, 0, stride_left)
-            is_last = np.where(stride_right > 0, chunk_end_idx > inputs_len, chunk_end_idx >= inputs_len)
+            is_last = np.where(
+                stride_right > 0,
+                chunk_end_idx > inputs_len,
+                chunk_end_idx >= inputs_len,
+            )
             _stride_right = np.where(is_last, 0, stride_right)
 
             chunk_lens = [chunk.shape[0] for chunk in chunks]
             strides = [
                 (chunk_l, _stride_l, _stride_r)
-                for chunk_l, _stride_l, _stride_r in zip(chunk_lens, _stride_left, _stride_right)
+                for chunk_l, _stride_l, _stride_r in zip(
+                    chunk_lens, _stride_left, _stride_right
+                )
             ]
 
             yield {"stride": strides, **processed}
 
-    def preprocess_batch(self, inputs, chunk_length_s=30.0, stride_length_s=None, batch_size=None):
+    def preprocess_batch(
+        self, inputs, chunk_length_s=30.0, stride_length_s=None, batch_size=None
+    ):
         if isinstance(inputs, np.ndarray):
             logger.warning(
                 "Numpy array passed as input - no sampling rate checks will be performed."
@@ -299,16 +335,22 @@ class FlaxWhisperPipeline:
                     ) from err
 
                 inputs = librosa.resample(
-                    inputs, orig_sr=in_sampling_rate, target_sr=self.feature_extractor.sampling_rate
+                    inputs,
+                    orig_sr=in_sampling_rate,
+                    target_sr=self.feature_extractor.sampling_rate,
                 )
                 ratio = self.feature_extractor.sampling_rate / in_sampling_rate
             else:
                 ratio = 1
 
         if not isinstance(inputs, np.ndarray):
-            raise ValueError(f"We expect a numpy ndarray as input, got `{type(inputs)}`")
+            raise ValueError(
+                f"We expect a numpy ndarray as input, got `{type(inputs)}`"
+            )
         if len(inputs.shape) != 1:
-            raise ValueError("We expect a single channel audio input for AutomaticSpeechRecognitionPipeline")
+            raise ValueError(
+                "We expect a single channel audio input for AutomaticSpeechRecognitionPipeline"
+            )
 
         if stride is not None:
             if stride[0] + stride[1] > inputs.shape[0]:
@@ -318,7 +360,11 @@ class FlaxWhisperPipeline:
             # swallowed by the `feature_extractor` later, and then batching
             # can add extra data in the inputs, so we need to keep track
             # of the original length in the stride so we can cut properly.
-            stride = (inputs.shape[0], int(round(stride[0] * ratio)), int(round(stride[1] * ratio)))
+            stride = (
+                inputs.shape[0],
+                int(round(stride[0] * ratio)),
+                int(round(stride[1] * ratio)),
+            )
 
         if chunk_length_s:
             if stride_length_s is None:
@@ -328,8 +374,12 @@ class FlaxWhisperPipeline:
                 stride_length_s = [stride_length_s, stride_length_s]
 
             chunk_len = round(chunk_length_s * self.feature_extractor.sampling_rate)
-            stride_left = round(stride_length_s[0] * self.feature_extractor.sampling_rate)
-            stride_right = round(stride_length_s[1] * self.feature_extractor.sampling_rate)
+            stride_left = round(
+                stride_length_s[0] * self.feature_extractor.sampling_rate
+            )
+            stride_right = round(
+                stride_length_s[1] * self.feature_extractor.sampling_rate
+            )
 
             if chunk_len < stride_left + stride_right:
                 raise ValueError("Chunk length must be superior to stride length")
@@ -344,7 +394,9 @@ class FlaxWhisperPipeline:
                 yield item
         else:
             processed = self.feature_extractor(
-                inputs, sampling_rate=self.feature_extractor.sampling_rate, return_tensors="np"
+                inputs,
+                sampling_rate=self.feature_extractor.sampling_rate,
+                return_tensors="np",
             )
             if stride is not None:
                 processed["stride"] = stride
@@ -352,9 +404,15 @@ class FlaxWhisperPipeline:
 
     def postprocess(self, model_outputs, return_timestamps=None, return_language=None):
         # unpack the outputs from list(dict(list)) to list(dict)
-        model_outputs = [dict(zip(output, t)) for output in model_outputs for t in zip(*output.values())]
+        model_outputs = [
+            dict(zip(output, t))
+            for output in model_outputs
+            for t in zip(*output.values())
+        ]
 
-        time_precision = self.feature_extractor.chunk_length / self.model.config.max_source_positions
+        time_precision = (
+            self.feature_extractor.chunk_length / self.model.config.max_source_positions
+        )
         # Send the chunking back to seconds, it's easier to handle in whisper
         sampling_rate = self.feature_extractor.sampling_rate
         for output in model_outputs:
@@ -392,7 +450,10 @@ class FlaxWhisperPipeline:
         input_batch_size = input_features.shape[0]
 
         if input_batch_size != batch_size:
-            padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], input_features.dtype)
+            padding = np.zeros(
+                [batch_size - input_batch_size, *input_features.shape[1:]],
+                input_features.dtype,
+            )
             input_features = np.concatenate([input_features, padding])
 
         pred_ids = self.generate(
@@ -504,7 +565,10 @@ class FlaxWhisperPipeline:
             )
 
         dataloader = self.preprocess_batch(
-            inputs, chunk_length_s=chunk_length_s, stride_length_s=stride_length_s, batch_size=batch_size
+            inputs,
+            chunk_length_s=chunk_length_s,
+            stride_length_s=stride_length_s,
+            batch_size=batch_size,
         )
         model_outputs = []
         # iterate over our chunked audio samples
@@ -523,5 +587,7 @@ class FlaxWhisperPipeline:
                     temperature=temperature,
                 )
             )
-        post_processed = self.postprocess(model_outputs, return_timestamps=return_timestamps)
+        post_processed = self.postprocess(
+            model_outputs, return_timestamps=return_timestamps
+        )
         return post_processed

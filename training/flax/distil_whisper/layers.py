@@ -41,7 +41,9 @@ DType = jnp.dtype
 PRNGKey = jnp.ndarray
 Shape = Iterable[int]
 Activation = Callable[..., Array]
-PrecisionLike = Union[None, str, lax.Precision, Tuple[str, str], Tuple[lax.Precision, lax.Precision]]
+PrecisionLike = Union[
+    None, str, lax.Precision, Tuple[str, str], Tuple[lax.Precision, lax.Precision]
+]
 DotGeneralT = Callable[..., Array]
 ConvGeneralDilatedT = Callable[..., Array]
 PaddingLike = Union[str, int, Sequence[Union[int, Tuple[int, int]]]]
@@ -50,9 +52,13 @@ LaxPadding = Union[str, Sequence[Tuple[int, int]]]
 # Parameter initializers.
 Initializer = Callable[[PRNGKey, Shape, DType], Array]
 InitializerAxis = Union[int, Tuple[int, ...]]
-NdInitializer = Callable[[PRNGKey, Shape, DType, InitializerAxis, InitializerAxis], Array]
+NdInitializer = Callable[
+    [PRNGKey, Shape, DType, InitializerAxis, InitializerAxis], Array
+]
 
-default_embed_init = nn.initializers.variance_scaling(1.0, "fan_in", "normal", out_axis=0)
+default_embed_init = nn.initializers.variance_scaling(
+    1.0, "fan_in", "normal", out_axis=0
+)
 
 
 # ------------------------------------------------------------------------------
@@ -75,7 +81,9 @@ def _compute_fans(shape: jax.core.NamedShape, in_axis=-2, out_axis=-1):
     return fan_in, fan_out
 
 
-def variance_scaling(scale, mode, distribution, in_axis=-2, out_axis=-1, dtype=jnp.float_):
+def variance_scaling(
+    scale, mode, distribution, in_axis=-2, out_axis=-1, dtype=jnp.float_
+):
     """Inlined JAX `nn.initializer.variance_scaling`."""
 
     def init(key, shape, dtype=dtype):
@@ -90,7 +98,9 @@ def variance_scaling(scale, mode, distribution, in_axis=-2, out_axis=-1, dtype=j
         elif mode == "fan_avg":
             denominator = (fan_in + fan_out) / 2
         else:
-            raise ValueError("invalid mode for variance scaling initializer: {}".format(mode))
+            raise ValueError(
+                "invalid mode for variance scaling initializer: {}".format(mode)
+            )
         variance = jnp.array(scale / denominator, dtype=dtype)
 
         if distribution == "truncated_normal":
@@ -102,7 +112,11 @@ def variance_scaling(scale, mode, distribution, in_axis=-2, out_axis=-1, dtype=j
         elif distribution == "uniform":
             return random.uniform(key, shape, dtype, -1) * jnp.sqrt(3 * variance)
         else:
-            raise ValueError("invalid distribution for variance scaling initializer: {}".format(distribution))
+            raise ValueError(
+                "invalid distribution for variance scaling initializer: {}".format(
+                    distribution
+                )
+            )
 
     return init
 
@@ -158,8 +172,12 @@ def dot_product_attention(
       Output of shape `[batch, length, num_heads, v_depth_per_head]`.
     """
     assert key.ndim == query.ndim == value.ndim, "q, k, v must have same rank."
-    assert query.shape[:-3] == key.shape[:-3] == value.shape[:-3], "q, k, v batch dims must match."
-    assert query.shape[-2] == key.shape[-2] == value.shape[-2], "q, k, v num_heads must match."
+    assert (
+        query.shape[:-3] == key.shape[:-3] == value.shape[:-3]
+    ), "q, k, v batch dims must match."
+    assert (
+        query.shape[-2] == key.shape[-2] == value.shape[-2]
+    ), "q, k, v num_heads must match."
     assert key.shape[-3] == value.shape[-3], "k, v lengths must match."
     assert query.shape[-1] == key.shape[-1], "q, k depths must match."
 
@@ -187,14 +205,18 @@ def dot_product_attention(
         dropout_shape[-2] = 1
         keep = random.bernoulli(dropout_rng, keep_prob, dropout_shape)
         keep = jnp.broadcast_to(keep, attn_weights.shape)
-        multiplier = keep.astype(attn_weights.dtype) / jnp.asarray(keep_prob, dtype=dtype)
+        multiplier = keep.astype(attn_weights.dtype) / jnp.asarray(
+            keep_prob, dtype=dtype
+        )
         attn_weights = attn_weights * multiplier
 
     # Take the linear combination of `value`.
     return jnp.einsum("bhqk,bkhd->bqhd", attn_weights, value)
 
 
-dynamic_vector_slice_in_dim = jax.vmap(lax.dynamic_slice_in_dim, in_axes=(None, 0, None, None))
+dynamic_vector_slice_in_dim = jax.vmap(
+    lax.dynamic_slice_in_dim, in_axes=(None, 0, None, None)
+)
 
 
 class MultiHeadDotProductAttention(nn.Module):
@@ -295,9 +317,15 @@ class MultiHeadDotProductAttention(nn.Module):
             def swap_dims(x):
                 return x[:-3] + tuple(x[i] for i in [-2, -1, -3])
 
-            cached_key = self.variable("cache", "cached_key", jnp.zeros, swap_dims(key.shape), key.dtype)
-            cached_value = self.variable("cache", "cached_value", jnp.zeros, swap_dims(value.shape), value.dtype)
-            cache_index = self.variable("cache", "cache_index", lambda: jnp.array(0, dtype=jnp.int32))
+            cached_key = self.variable(
+                "cache", "cached_key", jnp.zeros, swap_dims(key.shape), key.dtype
+            )
+            cached_value = self.variable(
+                "cache", "cached_value", jnp.zeros, swap_dims(value.shape), value.dtype
+            )
+            cache_index = self.variable(
+                "cache", "cache_index", lambda: jnp.array(0, dtype=jnp.int32)
+            )
             if is_initialized:
                 batch, num_heads, head_dim, length = cached_key.value.shape
                 # During fast autoregressive decoding, we feed one position at a time,
@@ -307,7 +335,8 @@ class MultiHeadDotProductAttention(nn.Module):
                 if expected_shape != query.shape:
                     raise ValueError(
                         "Autoregressive cache shape error, "
-                        "expected query shape %s instead got %s." % (expected_shape, query.shape)
+                        "expected query shape %s instead got %s."
+                        % (expected_shape, query.shape)
                     )
 
                 # Create a OHE of the current index. NOTE: the index is increased below.
@@ -353,7 +382,9 @@ class MultiHeadDotProductAttention(nn.Module):
                     # The bias is a full attention matrix, but during decoding we only
                     # have to take a slice of it.
                     # This is equivalent to bias[..., cur_index:cur_index+1, :].
-                    bias = dynamic_vector_slice_in_dim(jnp.squeeze(bias, axis=0), jnp.reshape(cur_index, (-1)), 1, -2)
+                    bias = dynamic_vector_slice_in_dim(
+                        jnp.squeeze(bias, axis=0), jnp.reshape(cur_index, (-1)), 1, -2
+                    )
 
         # Convert the boolean attention mask to an attention bias.
         if mask is not None:
@@ -489,7 +520,9 @@ def _convert_to_activation_function(fn_or_string: Union[str, Callable]) -> Calla
     elif callable(fn_or_string):
         return fn_or_string
     else:
-        raise ValueError("don't know how to convert %s to an activation function" % (fn_or_string,))
+        raise ValueError(
+            "don't know how to convert %s to an activation function" % (fn_or_string,)
+        )
 
 
 class MlpBlock(nn.Module):
@@ -638,7 +671,9 @@ class RelativePositionBiases(nn.Module):
     embedding_init: Callable[..., Array] = nn.linear.default_embed_init
 
     @staticmethod
-    def _relative_position_bucket(relative_position, bidirectional=True, num_buckets=32, max_distance=128):
+    def _relative_position_bucket(
+        relative_position, bidirectional=True, num_buckets=32, max_distance=128
+    ):
         """Translate relative position to a bucket number for relative attention.
 
         The relative position is defined as memory_position - query_position, i.e.
@@ -721,7 +756,9 @@ class RelativePositionBiases(nn.Module):
         # (num_head, num_buckets) x (num_buckets one-hot, qlen, klen).
         # This is equivalent to relative_attention_bias[:, rp_bucket]
         bcast_iota = lax.broadcasted_iota(jnp.int32, (self.num_buckets, 1, 1), 0)
-        rp_bucket_one_hot = jnp.array(rp_bucket[jnp.newaxis, ...] == bcast_iota, dtype=self.dtype)
+        rp_bucket_one_hot = jnp.array(
+            rp_bucket[jnp.newaxis, ...] == bcast_iota, dtype=self.dtype
+        )
         # --> shape (qlen, klen, num_heads)
         values = lax.dot_general(
             relative_attention_bias,
@@ -807,7 +844,9 @@ class LayerNorm(nn.Module):
             mul = mul * jnp.asarray(scale, self.dtype)
         y = (x - mean) * mul
         if self.use_bias:
-            bias = param_with_axes("bias", self.bias_init, (features,), self.params_dtype, axes=("embed",))
+            bias = param_with_axes(
+                "bias", self.bias_init, (features,), self.params_dtype, axes=("embed",)
+            )
             y = y + jnp.asarray(bias, self.dtype)
         return jnp.asarray(y, self.dtype)
 
@@ -853,7 +892,9 @@ def make_attention_mask(
     return mask.astype(dtype)
 
 
-def make_causal_mask(x: Array, extra_batch_dims: int = 0, dtype: DType = jnp.float32) -> Array:
+def make_causal_mask(
+    x: Array, extra_batch_dims: int = 0, dtype: DType = jnp.float32
+) -> Array:
     """Make a causal mask for self-attention.
 
     In case of 1d inputs (i.e., `[batch, len]`, the self-attention weights
@@ -874,7 +915,9 @@ def make_causal_mask(x: Array, extra_batch_dims: int = 0, dtype: DType = jnp.flo
       A `[batch, 1, len, len]` shaped causal mask for 1d attention.
     """
     idxs = jnp.broadcast_to(jnp.arange(x.shape[-1], dtype=jnp.int32), x.shape)
-    return make_attention_mask(idxs, idxs, jnp.greater_equal, extra_batch_dims=extra_batch_dims, dtype=dtype)
+    return make_attention_mask(
+        idxs, idxs, jnp.greater_equal, extra_batch_dims=extra_batch_dims, dtype=dtype
+    )
 
 
 def combine_masks(*masks: Optional[Array], dtype: DType = jnp.float32):
@@ -1009,11 +1052,19 @@ def make_decoder_mask(
         masks.append(causal_mask)
 
     # Padding mask.
-    masks.append(make_attention_mask(decoder_target_tokens > 0, decoder_target_tokens > 0, dtype=dtype))
+    masks.append(
+        make_attention_mask(
+            decoder_target_tokens > 0, decoder_target_tokens > 0, dtype=dtype
+        )
+    )
 
     # Packing mask
     if decoder_segment_ids is not None:
-        masks.append(make_attention_mask(decoder_segment_ids, decoder_segment_ids, jnp.equal, dtype=dtype))
+        masks.append(
+            make_attention_mask(
+                decoder_segment_ids, decoder_segment_ids, jnp.equal, dtype=dtype
+            )
+        )
 
     return combine_masks(*masks, dtype=dtype)
 
@@ -1101,7 +1152,9 @@ class _Conv(nn.Module):
     dtype: Optional[DType] = None
     params_dtype: DType = jnp.float32
     precision: PrecisionLike = None
-    kernel_init: Callable[[PRNGKey, Shape, DType], Array] = nn.initializers.lecun_normal()
+    kernel_init: Callable[[PRNGKey, Shape, DType], Array] = (
+        nn.initializers.lecun_normal()
+    )
     bias_init: Callable[[PRNGKey, Shape, DType], Array] = nn.initializers.zeros
     conv_general_dilated: ConvGeneralDilatedT = lax.conv_general_dilated
     kernel_axes: Tuple[str, ...] = ()
@@ -1172,14 +1225,22 @@ class _Conv(nn.Module):
 
         padding_lax = canonicalize_padding(self.padding, len(kernel_size))
         if padding_lax == "CIRCULAR":
-            kernel_size_dilated = [(k - 1) * d + 1 for k, d in zip(kernel_size, kernel_dilation)]
+            kernel_size_dilated = [
+                (k - 1) * d + 1 for k, d in zip(kernel_size, kernel_dilation)
+            ]
             zero_pad: List[Tuple[int, int]] = [(0, 0)]
-            pads = zero_pad + [((k - 1) // 2, k // 2) for k in kernel_size_dilated] + [(0, 0)]
+            pads = (
+                zero_pad
+                + [((k - 1) // 2, k // 2) for k in kernel_size_dilated]
+                + [(0, 0)]
+            )
             inputs = jnp.pad(inputs, pads, mode="wrap")
             padding_lax = "VALID"
         elif padding_lax == "CAUSAL":
             if len(kernel_size) != 1:
-                raise ValueError("Causal padding is only implemented for 1D convolutions.")
+                raise ValueError(
+                    "Causal padding is only implemented for 1D convolutions."
+                )
             left_pad = kernel_dilation[0] * (kernel_size[0] - 1)
             pads = [(0, 0), (left_pad, 0), (0, 0)]
             inputs = jnp.pad(inputs, pads)
@@ -1216,7 +1277,9 @@ class _Conv(nn.Module):
                     rhs_dilation=kernel_dilation,
                 ),
                 inputs,
-                jax.ShapedArray(kernel_size + (in_features, self.features), inputs.dtype),
+                jax.ShapedArray(
+                    kernel_size + (in_features, self.features), inputs.dtype
+                ),
             ).shape
 
             # One (unshared) convolutional kernel per each pixel in the output.
@@ -1227,7 +1290,8 @@ class _Conv(nn.Module):
 
         if self.mask is not None and self.mask.shape != kernel_shape:
             raise ValueError(
-                "Mask needs to have the same shape as weights. " f"Shapes are: {self.mask.shape}, {kernel_shape}"
+                "Mask needs to have the same shape as weights. "
+                f"Shapes are: {self.mask.shape}, {kernel_shape}"
             )
 
         kernel = param_with_axes(

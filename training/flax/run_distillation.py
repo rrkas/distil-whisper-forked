@@ -97,34 +97,60 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        metadata={"help": ("Path to pretrained student model or model identifier from huggingface.co/models")}
+        metadata={
+            "help": (
+                "Path to pretrained student model or model identifier from huggingface.co/models"
+            )
+        }
     )
     teacher_model_name_or_path: str = field(
-        metadata={"help": ("Path to pretrained teacher model or model identifier from huggingface.co/models")}
+        metadata={
+            "help": (
+                "Path to pretrained teacher model or model identifier from huggingface.co/models"
+            )
+        }
     )
     config_name: Optional[str] = field(
         default=None,
-        metadata={"help": "Pretrained config name or path if not the same as model_name"},
+        metadata={
+            "help": "Pretrained config name or path if not the same as model_name"
+        },
     )
     tokenizer_name: Optional[str] = field(
         default=None,
-        metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"},
+        metadata={
+            "help": "Pretrained tokenizer name or path if not the same as model_name"
+        },
     )
     feature_extractor_name: Optional[str] = field(
         default=None,
-        metadata={"help": "feature extractor name or path if not the same as model_name"},
+        metadata={
+            "help": "feature extractor name or path if not the same as model_name"
+        },
     )
     cache_dir: Optional[str] = field(
         default=None,
-        metadata={"help": ("Where to store the pretrained models downloaded from huggingface.co")},
+        metadata={
+            "help": (
+                "Where to store the pretrained models downloaded from huggingface.co"
+            )
+        },
     )
     use_fast_tokenizer: bool = field(
         default=True,
-        metadata={"help": ("Whether to use one of the fast tokenizer (backed by the tokenizers library) or not.")},
+        metadata={
+            "help": (
+                "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."
+            )
+        },
     )
     model_revision: str = field(
         default="main",
-        metadata={"help": ("The specific model version to use (can be a branch name, tag name or commit id).")},
+        metadata={
+            "help": (
+                "The specific model version to use (can be a branch name, tag name or commit id)."
+            )
+        },
     )
     subfolder: str = field(
         default="",
@@ -160,7 +186,9 @@ class ModelArguments:
     )
     activation_dropout: float = field(
         default=0.0,
-        metadata={"help": "The dropout ratio for activations inside the fully connected layer."},
+        metadata={
+            "help": "The dropout ratio for activations inside the fully connected layer."
+        },
     )
     attention_dropout: float = field(
         default=0.0,
@@ -246,7 +274,11 @@ class DataTrainingArguments:
     )
     audio_column_name: str = field(
         default="audio",
-        metadata={"help": ("The name of the dataset column containing the audio data. Defaults to 'audio'")},
+        metadata={
+            "help": (
+                "The name of the dataset column containing the audio data. Defaults to 'audio'"
+            )
+        },
     )
     train_text_column_name: str = field(
         default="whisper_transcript",
@@ -269,15 +301,25 @@ class DataTrainingArguments:
     )
     max_duration_in_seconds: float = field(
         default=30.0,
-        metadata={"help": ("Filter audio files that are longer than `max_duration_in_seconds` seconds")},
+        metadata={
+            "help": (
+                "Filter audio files that are longer than `max_duration_in_seconds` seconds"
+            )
+        },
     )
     min_duration_in_seconds: float = field(
         default=0.0,
-        metadata={"help": ("Filter audio files that are shorter than `min_duration_in_seconds` seconds")},
+        metadata={
+            "help": (
+                "Filter audio files that are shorter than `min_duration_in_seconds` seconds"
+            )
+        },
     )
     max_label_length: int = field(
         default=128,
-        metadata={"help": "Truncate transcriptions that are longer `max_label_length` tokens."},
+        metadata={
+            "help": "Truncate transcriptions that are longer `max_label_length` tokens."
+        },
     )
     pad_target_to_multiple_of: Optional[int] = field(
         default=None,
@@ -305,7 +347,9 @@ class DataTrainingArguments:
     train_split_name: str = field(
         default="train",
         metadata={
-            "help": ("The name of the training data set split to use (via the datasets library). Defaults to 'train'")
+            "help": (
+                "The name of the training data set split to use (via the datasets library). Defaults to 'train'"
+            )
         },
     )
     eval_split_name: str = field(
@@ -345,7 +389,9 @@ class DataTrainingArguments:
     )
     streaming: bool = field(
         default=True,
-        metadata={"help": "Whether to use Datasets' streaming mode to load and the data."},
+        metadata={
+            "help": "Whether to use Datasets' streaming mode to load and the data."
+        },
     )
     wer_threshold: float = field(
         default=None,
@@ -356,13 +402,21 @@ class DataTrainingArguments:
     )
     prefetch_size: int = field(
         default=0,
-        metadata={"help": "Number of samples to pre-fetch if using an iterable dataset."},
+        metadata={
+            "help": "Number of samples to pre-fetch if using an iterable dataset."
+        },
     )
     timestamp_probability: float = field(
-        default=0.5, metadata={"help": "Probability for training on timestamped tokens if the data contains it."}
+        default=0.5,
+        metadata={
+            "help": "Probability for training on timestamped tokens if the data contains it."
+        },
     )
     return_timestamps: bool = field(
-        default=False, metadata={"help": "Whether or not to predict timestamps in the generation step."}
+        default=False,
+        metadata={
+            "help": "Whether or not to predict timestamps in the generation step."
+        },
     )
     round_timestamps: bool = field(
         default=False,
@@ -399,7 +453,10 @@ class FlaxSeq2SeqTrainingArguments(Seq2SeqTrainingArguments):
         },
     )
     temperature: Optional[float] = field(
-        default=2.0, metadata={"help": "Temperature to anneal the logits when computing the softmax."}
+        default=2.0,
+        metadata={
+            "help": "Temperature to anneal the logits when computing the softmax."
+        },
     )
     kl_weight: Optional[float] = field(
         default=1.0,
@@ -505,13 +562,17 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
     target_padding: Union[bool, str] = "max_length"
     max_target_length: Optional[int] = None
 
-    def __call__(self, features: List[Dict[str, Union[List[int], np.ndarray]]]) -> Dict[str, np.ndarray]:
+    def __call__(
+        self, features: List[Dict[str, Union[List[int], np.ndarray]]]
+    ) -> Dict[str, np.ndarray]:
         # split inputs and labels since they have to be of different lengths and need
         # different padding methods
         model_input_name = self.processor.model_input_names[0]
 
         # dataloader returns a list of features which we convert to a dict
-        input_features = {model_input_name: [feature[model_input_name] for feature in features]}
+        input_features = {
+            model_input_name: [feature[model_input_name] for feature in features]
+        }
         label_features = {"input_ids": [feature["labels"] for feature in features]}
 
         # reformat list to dict and set to pytorch format
@@ -531,7 +592,9 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         # if bos token is appended in previous tokenization step,
         # cut bos token here as it's append later anyways
         labels = labels_batch["input_ids"]
-        if set(np.unique(labels[:, 0])).issubset({self.decoder_start_token_id, self.decoder_prev_token_id}):
+        if set(np.unique(labels[:, 0])).issubset(
+            {self.decoder_start_token_id, self.decoder_prev_token_id}
+        ):
             decoder_input_ids = labels[:, :-1]
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
@@ -612,10 +675,16 @@ def get_data_loader(
     return data_loader
 
 
-def sorted_checkpoints(output_dir=None, checkpoint_prefix="checkpoint", use_mtime=False) -> List[str]:
+def sorted_checkpoints(
+    output_dir=None, checkpoint_prefix="checkpoint", use_mtime=False
+) -> List[str]:
     ordering_and_checkpoint_path = []
 
-    glob_checkpoints = [str(x) for x in Path(output_dir).glob(f"{checkpoint_prefix}-*") if os.path.isdir(x)]
+    glob_checkpoints = [
+        str(x)
+        for x in Path(output_dir).glob(f"{checkpoint_prefix}-*")
+        if os.path.isdir(x)
+    ]
 
     for path in glob_checkpoints:
         if use_mtime:
@@ -623,7 +692,9 @@ def sorted_checkpoints(output_dir=None, checkpoint_prefix="checkpoint", use_mtim
         else:
             regex_match = re.match(f".*{checkpoint_prefix}-([0-9]+)", path)
             if regex_match is not None and regex_match.groups() is not None:
-                ordering_and_checkpoint_path.append((int(regex_match.groups()[0]), path))
+                ordering_and_checkpoint_path.append(
+                    (int(regex_match.groups()[0]), path)
+                )
 
     checkpoints_sorted = sorted(ordering_and_checkpoint_path)
     checkpoints_sorted = [checkpoint[1] for checkpoint in checkpoints_sorted]
@@ -631,7 +702,10 @@ def sorted_checkpoints(output_dir=None, checkpoint_prefix="checkpoint", use_mtim
 
 
 def rotate_checkpoints(
-    save_total_limit=None, use_mtime=False, output_dir=None, checkpoint_prefix="checkpoint"
+    save_total_limit=None,
+    use_mtime=False,
+    output_dir=None,
+    checkpoint_prefix="checkpoint",
 ) -> None:
     if save_total_limit is None or save_total_limit <= 0:
         return
@@ -646,16 +720,22 @@ def rotate_checkpoints(
     number_of_checkpoints_to_delete = max(0, len(checkpoints_sorted) - save_total_limit)
     checkpoints_to_be_deleted = checkpoints_sorted[:number_of_checkpoints_to_delete]
     for checkpoint in checkpoints_to_be_deleted:
-        logger.info(f"Deleting older checkpoint [{checkpoint}] due to args.save_total_limit")
+        logger.info(
+            f"Deleting older checkpoint [{checkpoint}] due to args.save_total_limit"
+        )
         shutil.rmtree(checkpoint, ignore_errors=True)
 
 
 def to_fp32(t):
-    return jax.tree_map(lambda x: x.astype(jnp.float32) if x.dtype == jnp.bfloat16 else x, t)
+    return jax.tree_map(
+        lambda x: x.astype(jnp.float32) if x.dtype == jnp.bfloat16 else x, t
+    )
 
 
 def to_bf16(t):
-    return jax.tree_map(lambda x: x.astype(jnp.bfloat16) if x.dtype == jnp.float32 else x, t)
+    return jax.tree_map(
+        lambda x: x.astype(jnp.bfloat16) if x.dtype == jnp.float32 else x, t
+    )
 
 
 class TrainState(train_state.TrainState):
@@ -686,7 +766,9 @@ class TrainState(train_state.TrainState):
 
         # perform update step in fp32 and subsequently downcast optimizer states if mixed precision training
         # grads and opt_state in bf16 (need to upcast), params in fp32 (leave as is)
-        updates, new_opt_state = self.tx.update(to_fp32(grads), to_fp32(self.opt_state), self.params)
+        updates, new_opt_state = self.tx.update(
+            to_fp32(grads), to_fp32(self.opt_state), self.params
+        )
 
         new_params = optax.apply_updates(self.params, updates)
 
@@ -712,16 +794,24 @@ class TrainState(train_state.TrainState):
         )
 
     def replicate(self):
-        return jax_utils.replicate(self).replace(dropout_rng=shard_prng_key(self.dropout_rng))
+        return jax_utils.replicate(self).replace(
+            dropout_rng=shard_prng_key(self.dropout_rng)
+        )
 
     def unreplicate(self):
         return jax_utils.unreplicate(self)
 
-    def save_state(self, output_dir, save_total_limit=None, checkpoint_prefix="checkpoint"):
+    def save_state(
+        self, output_dir, save_total_limit=None, checkpoint_prefix="checkpoint"
+    ):
         step = int(jax.device_get(unreplicate(self.step)))
         serialized_state = to_bytes(self.unreplicate())
 
-        output_file = Path(os.path.join(output_dir, f"{checkpoint_prefix}-{step}", "train_state.msgpack"))
+        output_file = Path(
+            os.path.join(
+                output_dir, f"{checkpoint_prefix}-{step}", "train_state.msgpack"
+            )
+        )
         output_file.parent.mkdir(exist_ok=True, parents=True)
 
         with output_file.open("wb") as f:
@@ -729,7 +819,9 @@ class TrainState(train_state.TrainState):
 
         logger.info(f"Flax train state saved in {output_file}")
         rotate_checkpoints(
-            save_total_limit=save_total_limit, output_dir=output_dir, checkpoint_prefix=checkpoint_prefix
+            save_total_limit=save_total_limit,
+            output_dir=output_dir,
+            checkpoint_prefix=checkpoint_prefix,
         )
 
 
@@ -787,17 +879,28 @@ def write_wandb_metric(wandb_logger, metrics, train_time, step, epoch, prefix="t
 
 
 def write_wandb_pred(
-    wandb_logger, pred_str, label_str, norm_pred_str, norm_label_str, cur_step, prefix="eval", num_lines=200000
+    wandb_logger,
+    pred_str,
+    label_str,
+    norm_pred_str,
+    norm_label_str,
+    cur_step,
+    prefix="eval",
+    num_lines=200000,
 ):
     # pretty name for current step: step 50000 -> step 50k
     cur_step_pretty = f"{int(cur_step // 1000)}k" if cur_step > 1000 else cur_step
     # convert str data to a wandb compatible format
-    str_data = [[label_str[i], pred_str[i], norm_label_str[i], norm_pred_str[i]] for i in range(len(pred_str))]
+    str_data = [
+        [label_str[i], pred_str[i], norm_label_str[i], norm_pred_str[i]]
+        for i in range(len(pred_str))
+    ]
     # log as a table with the appropriate headers
     wandb_logger.log(
         {
             f"predictions/{prefix.replace('/', '-')}-step-{cur_step_pretty}": wandb_logger.Table(
-                columns=["Target", "Pred", "Norm Target", "Norm Pred"], data=str_data[:num_lines]
+                columns=["Target", "Pred", "Norm Target", "Norm Pred"],
+                data=str_data[:num_lines],
             )
         },
         cur_step,
@@ -809,7 +912,8 @@ def write_wandb_pred(
     wandb_logger.log(
         {
             f"incorrect_predictions/{prefix.replace('/', '-')}-step-{cur_step_pretty}": wandb_logger.Table(
-                columns=["Target", "Pred", "Norm Target", "Norm Pred"], data=str_data_incorrect[:num_lines]
+                columns=["Target", "Pred", "Norm Target", "Norm Pred"],
+                data=str_data_incorrect[:num_lines],
             )
         },
         cur_step,
@@ -817,7 +921,10 @@ def write_wandb_pred(
 
 
 def create_learning_rate_fn(
-    num_train_steps: int, lr_scheduler_type: str, num_warmup_steps: int, learning_rate: float
+    num_train_steps: int,
+    lr_scheduler_type: str,
+    num_warmup_steps: int,
+    learning_rate: float,
 ) -> Callable[[int], jnp.array]:
     """Returns a linear warmup, linear_decay learning rate function."""
     lr_scheduler_types = ("linear", "constant_with_warmup")
@@ -827,13 +934,17 @@ def create_learning_rate_fn(
             f"lr_scheduler_type of type {lr_scheduler_type} not supported, choose from {lr_scheduler_types}."
         )
 
-    warmup_fn = optax.linear_schedule(init_value=0.0, end_value=learning_rate, transition_steps=num_warmup_steps)
+    warmup_fn = optax.linear_schedule(
+        init_value=0.0, end_value=learning_rate, transition_steps=num_warmup_steps
+    )
     decay_fn = optax.linear_schedule(
         init_value=learning_rate,
         end_value=0 if lr_scheduler_type == "linear" else learning_rate,
         transition_steps=num_train_steps - num_warmup_steps,
     )
-    schedule_fn = optax.join_schedules(schedules=[warmup_fn, decay_fn], boundaries=[num_warmup_steps])
+    schedule_fn = optax.join_schedules(
+        schedules=[warmup_fn, decay_fn], boundaries=[num_warmup_steps]
+    )
     return schedule_fn
 
 
@@ -851,12 +962,18 @@ def convert_dataset_str_to_list(
         # we assume that all the datasets we're using derive from the distil-whisper org on the Hub - prepend the org name if necessary
         for i in range(len(dataset_names)):
             ds_name = dataset_names[i]
-            dataset_names[i] = f"distil-whisper/{ds_name}" if "/" not in ds_name else ds_name
+            dataset_names[i] = (
+                f"distil-whisper/{ds_name}" if "/" not in ds_name else ds_name
+            )
 
         dataset_config_names = dataset_config_names.split("+")
         splits = splits.split("+") if splits is not None else None
-        text_column_names = text_column_names.split("+") if text_column_names is not None else None
-        dataset_samples = dataset_samples.split("+") if dataset_samples is not None else None
+        text_column_names = (
+            text_column_names.split("+") if text_column_names is not None else None
+        )
+        dataset_samples = (
+            dataset_samples.split("+") if dataset_samples is not None else None
+        )
 
     # basic checks to ensure we've got the right number of datasets/configs/splits/columns/probs
     if len(dataset_names) != len(dataset_config_names):
@@ -887,9 +1004,15 @@ def convert_dataset_str_to_list(
         dataset_samples = [None] * len(dataset_names)
 
     text_column_names = (
-        text_column_names if text_column_names is not None else ["text" for _ in range(len(dataset_names))]
+        text_column_names
+        if text_column_names is not None
+        else ["text" for _ in range(len(dataset_names))]
     )
-    splits = splits if splits is not None else [default_split for _ in range(len(dataset_names))]
+    splits = (
+        splits
+        if splits is not None
+        else [default_split for _ in range(len(dataset_names))]
+    )
 
     dataset_names_dict = []
     for i, ds_name in enumerate(dataset_names):
@@ -951,7 +1074,8 @@ def load_multiple_datasets(
         # resample to specified sampling rate
         dataset = dataset.cast_column("audio", datasets.features.Audio(sampling_rate))
         dataset = dataset.remove_columns(
-            set(dataset.features.keys()) - {"audio", dataset_dict["text_column_name"], "whisper_transcript"}
+            set(dataset.features.keys())
+            - {"audio", dataset_dict["text_column_name"], "whisper_transcript"}
         )
         all_datasets.append(dataset)
 
@@ -974,8 +1098,14 @@ def get_layers_to_supervise(student_layers: int, teacher_layers: int) -> dict:
     in equal increments, e.g. for a 12-layer model distilled to a 3-layer model, student layer 0 emulates teacher layer
     3 (such that it behaves like the first 4 teacher layers), student layer 1 emulates teacher layer 7, and student layer
     2 emulates teacher layer 11. This mapping is summarised by the dictionary: {0: 3, 1: 7, 2: 11}, which is precisely
-    the output of this function for the arguments (student_layers=3, teacher_layers=12)."""
-    layer_intervals = np.linspace(teacher_layers // student_layers - 1, teacher_layers - 1, student_layers, dtype=int)
+    the output of this function for the arguments (student_layers=3, teacher_layers=12).
+    """
+    layer_intervals = np.linspace(
+        teacher_layers // student_layers - 1,
+        teacher_layers - 1,
+        student_layers,
+        dtype=int,
+    )
     layer_intervals[-1] = teacher_layers - 1
     layer_map = {}
 
@@ -995,7 +1125,9 @@ class FlaxWhisperFeatureExtractor(WhisperFeatureExtractor):
         waveform = torch.from_numpy(waveform).type(torch.float32)
 
         window = torch.hann_window(self.n_fft)
-        stft = torch.stft(waveform, self.n_fft, self.hop_length, window=window, return_complex=True)
+        stft = torch.stft(
+            waveform, self.n_fft, self.hop_length, window=window, return_complex=True
+        )
         magnitudes = stft[..., :-1].abs() ** 2
 
         mel_filters = torch.from_numpy(self.mel_filters).type(torch.float32)
@@ -1012,18 +1144,24 @@ def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, FlaxSeq2SeqTrainingArguments))
+    parser = HfArgumentParser(
+        (ModelArguments, DataTrainingArguments, FlaxSeq2SeqTrainingArguments)
+    )
 
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args = parser.parse_json_file(
+            json_file=os.path.abspath(sys.argv[1])
+        )
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
     # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # information sent is the one passed as arguments along with your JAX/Flax versions.
-    send_example_telemetry("run_flax_speech_recognition_seq2seq", model_args, data_args, framework="flax")
+    send_example_telemetry(
+        "run_flax_speech_recognition_seq2seq", model_args, data_args, framework="flax"
+    )
 
     # 2. Define remote logging - do this early so that we get the full traceback on our remote logs
     # Enable tensorboard only on the master node
@@ -1033,11 +1171,14 @@ def main():
             try:
                 from flax.metrics.tensorboard import SummaryWriter
 
-                summary_writer = SummaryWriter(log_dir=os.path.join(Path(training_args.output_dir), "runs"))
+                summary_writer = SummaryWriter(
+                    log_dir=os.path.join(Path(training_args.output_dir), "runs")
+                )
             except ImportError as ie:
                 has_tensorboard = False
                 logger.warning(
-                    "Unable to display metrics through TensorBoard because some package" f" are not installed: {ie}"
+                    "Unable to display metrics through TensorBoard because some package"
+                    f" are not installed: {ie}"
                 )
     else:
         logger.warning(
@@ -1060,7 +1201,9 @@ def main():
                 save_code=data_args.save_code_to_wandb,
             )
     else:
-        logger.warning("Wandb logging requires wandb to be installed. Run `pip install wandb` to enable.")
+        logger.warning(
+            "Wandb logging requires wandb to be installed. Run `pip install wandb` to enable."
+        )
 
     # 3. Setup local logging
     # Make one log on every process with the configuration for debugging.
@@ -1132,7 +1275,11 @@ def main():
 
     if training_args.do_eval:
         dataset_names_dict = convert_dataset_str_to_list(
-            data_args.eval_dataset_name if data_args.eval_dataset_name else data_args.train_dataset_name,
+            (
+                data_args.eval_dataset_name
+                if data_args.eval_dataset_name
+                else data_args.train_dataset_name
+            ),
             (
                 data_args.eval_dataset_config_name
                 if data_args.eval_dataset_config_name
@@ -1159,7 +1306,9 @@ def main():
             for dataset_dict in dataset_names_dict:
                 if dataset_dict["name"] == "esb/diagnostic-dataset":
                     # for the ESB diagnostic dataset, the dataset name is effectively the config
-                    pretty_name = f"{dataset_dict['config']}-diagnostic/{dataset_dict['split']}"
+                    pretty_name = (
+                        f"{dataset_dict['config']}-diagnostic/{dataset_dict['split']}"
+                    )
                 else:
                     pretty_name = f"{dataset_dict['name'].split('/')[-1]}/{dataset_dict['split'].replace('.', '-')}"
                 all_eval_splits.append(pretty_name)
@@ -1205,19 +1354,31 @@ def main():
 
     # 6. Load pretrained model, tokenizer, and feature extractor
     config = WhisperConfig.from_pretrained(
-        (model_args.config_name if model_args.config_name else model_args.model_name_or_path),
+        (
+            model_args.config_name
+            if model_args.config_name
+            else model_args.model_name_or_path
+        ),
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         token=True if model_args.use_auth_token else None,
     )
     feature_extractor = FlaxWhisperFeatureExtractor.from_pretrained(
-        (model_args.feature_extractor_name if model_args.feature_extractor_name else model_args.model_name_or_path),
+        (
+            model_args.feature_extractor_name
+            if model_args.feature_extractor_name
+            else model_args.model_name_or_path
+        ),
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         token=True if model_args.use_auth_token else None,
     )
     tokenizer = WhisperTokenizerFast.from_pretrained(
-        (model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path),
+        (
+            model_args.tokenizer_name
+            if model_args.tokenizer_name
+            else model_args.model_name_or_path
+        ),
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
@@ -1225,7 +1386,10 @@ def main():
     )
 
     # override timestamp tokens until tokenizer issues are fixed in transformers
-    timestamps = [AddedToken("<|%.2f|>" % (i * 0.02), lstrip=False, rstrip=False) for i in range(1500 + 1)]
+    timestamps = [
+        AddedToken("<|%.2f|>" % (i * 0.02), lstrip=False, rstrip=False)
+        for i in range(1500 + 1)
+    ]
     tokenizer.add_tokens(timestamps)
 
     config.update(
@@ -1275,7 +1439,10 @@ def main():
         _do_init=False,
     )
 
-    if student_model.config.decoder_start_token_id is None or teacher_model.config.decoder_start_token_id is None:
+    if (
+        student_model.config.decoder_start_token_id is None
+        or teacher_model.config.decoder_start_token_id is None
+    ):
         raise ValueError(
             f"Make sure that `config.decoder_start_token_id` is correctly defined for both the "
             f"student and teacher model. Got {student_model.config.decoder_start_token_id} for the "
@@ -1285,7 +1452,9 @@ def main():
     # enable scan / gradient checkpointing if necessary
     if training_args.use_scan:
         student_model.enable_scan()  # to enable scan in the nn.Module
-        student_params = student_model.convert_unroll_to_scan(student_params)  # to convert the unrolled params to scan
+        student_params = student_model.convert_unroll_to_scan(
+            student_params
+        )  # to convert the unrolled params to scan
 
         teacher_model.enable_scan()  # faster compile time (even though we don't train the teacher)
         teacher_params = teacher_model.convert_unroll_to_scan(teacher_params)
@@ -1294,9 +1463,14 @@ def main():
         student_model.enable_gradient_checkpointing()  # to enable checkpointing in the nn.Module, there is no change to the params structure
         teacher_model.enable_gradient_checkpointing()
 
-    if hasattr(teacher_model.generation_config, "is_multilingual") and teacher_model.generation_config.is_multilingual:
+    if (
+        hasattr(teacher_model.generation_config, "is_multilingual")
+        and teacher_model.generation_config.is_multilingual
+    ):
         # We need to set the language and task ids for previously multilingual checkpoints - for now we hardcode this to English
-        tokenizer.set_prefix_tokens(language="English", task="transcribe", predict_timestamps=False)
+        tokenizer.set_prefix_tokens(
+            language="English", task="transcribe", predict_timestamps=False
+        )
         student_model.generation_config.update(
             **{
                 "language": "<|en|>",
@@ -1313,10 +1487,16 @@ def main():
 
     # 8. Preprocessing the datasets.
     # We need to read the audio files as arrays and tokenize the targets.
-    max_input_length = int(data_args.max_duration_in_seconds * feature_extractor.sampling_rate)
-    min_input_length = int(data_args.min_duration_in_seconds * feature_extractor.sampling_rate)
+    max_input_length = int(
+        data_args.max_duration_in_seconds * feature_extractor.sampling_rate
+    )
+    min_input_length = int(
+        data_args.min_duration_in_seconds * feature_extractor.sampling_rate
+    )
     max_label_length = (
-        data_args.max_label_length if data_args.max_label_length is not None else student_model.config.max_length
+        data_args.max_label_length
+        if data_args.max_label_length is not None
+        else student_model.config.max_length
     )
     audio_column_name = data_args.audio_column_name
     num_workers = data_args.preprocessing_num_workers
@@ -1348,7 +1528,9 @@ def main():
         norm_ground_truth = normalizer(ground_truth)
         if len(norm_ground_truth) > 0 and whisper_transcript is not None:
             norm_whisper_transcript = normalizer(whisper_transcript)
-            wer = 100 * metric.compute(predictions=[norm_whisper_transcript], references=[norm_ground_truth])
+            wer = 100 * metric.compute(
+                predictions=[norm_whisper_transcript], references=[norm_ground_truth]
+            )
             return wer < wer_threshold
         else:
             # filter automatically since we can't know the WER
@@ -1362,7 +1544,9 @@ def main():
 
     if wer_threshold is not None:
         raw_datasets["train"] = (
-            filter_by_wer_threshold(num_proc=num_workers, desc="filtering train dataset by wer")
+            filter_by_wer_threshold(
+                num_proc=num_workers, desc="filtering train dataset by wer"
+            )
             if not data_args.streaming
             else filter_by_wer_threshold()
         )
@@ -1388,7 +1572,9 @@ def main():
     def prepare_train_dataset(batch):
         # process audio input
         sample = batch[audio_column_name]
-        inputs = feature_extractor(sample["array"], sampling_rate=sample["sampling_rate"])
+        inputs = feature_extractor(
+            sample["array"], sampling_rate=sample["sampling_rate"]
+        )
         batch[model_input_name] = inputs.get(model_input_name)[0]
         batch["input_length"] = len(sample["array"])
 
@@ -1396,7 +1582,9 @@ def main():
         input_str = batch[train_text_column_name]
 
         # prompt & timestamp processing: for now, we only do one or the other
-        if input_str.startswith("<|startoftranscript|>") or input_str.startswith("<|startofprev|>"):
+        if input_str.startswith("<|startoftranscript|>") or input_str.startswith(
+            "<|startofprev|>"
+        ):
             # prompted target text already has special ids added, so don't add them here
             batch["labels"] = tokenizer(input_str, add_special_tokens=False).input_ids
             return batch
@@ -1404,7 +1592,9 @@ def main():
         has_timestamps = has_timestamp_tokens(input_str)
 
         if has_timestamps:
-            predict_timestamps = bool(np.random.binomial(1, data_args.timestamp_probability))
+            predict_timestamps = bool(
+                np.random.binomial(1, data_args.timestamp_probability)
+            )
             if not predict_timestamps:
                 # filter timestamp token ids if not part of the prediction task
                 input_str = tokenizer._filter_timestamp_ids(input_str)
@@ -1413,7 +1603,9 @@ def main():
         else:
             predict_timestamps = False
 
-        tokenizer.set_prefix_tokens(language="English", task="transcribe", predict_timestamps=predict_timestamps)
+        tokenizer.set_prefix_tokens(
+            language="English", task="transcribe", predict_timestamps=predict_timestamps
+        )
         input_ids = tokenizer(input_str).input_ids
         batch["labels"] = input_ids
         return batch
@@ -1421,7 +1613,9 @@ def main():
     def prepare_eval_dataset(batch):
         # process audio
         sample = batch[audio_column_name]
-        inputs = feature_extractor(sample["array"], sampling_rate=sample["sampling_rate"])
+        inputs = feature_extractor(
+            sample["array"], sampling_rate=sample["sampling_rate"]
+        )
         # process audio length
         batch[model_input_name] = inputs.get(model_input_name)[0]
         batch["input_length"] = len(sample["array"])
@@ -1431,10 +1625,14 @@ def main():
         batch["labels"] = tokenizer(input_str).input_ids
         return batch
 
-    vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
+    vectorized_datasets = (
+        IterableDatasetDict() if data_args.streaming else DatasetDict()
+    )
     if training_args.do_train:
         map_fn_train = partial(
-            raw_datasets["train"].map, function=prepare_train_dataset, remove_columns=raw_datasets_train_features
+            raw_datasets["train"].map,
+            function=prepare_train_dataset,
+            remove_columns=raw_datasets_train_features,
         )
         vectorized_datasets["train"] = (
             map_fn_train(num_proc=num_workers, desc="preprocess train dataset")
@@ -1445,7 +1643,9 @@ def main():
         for eval_split in all_eval_splits:
             raw_datasets_eval_features = list(raw_datasets[eval_split].features.keys())
             map_fn_eval = partial(
-                raw_datasets[eval_split].map, function=prepare_eval_dataset, remove_columns=raw_datasets_eval_features
+                raw_datasets[eval_split].map,
+                function=prepare_eval_dataset,
+                remove_columns=raw_datasets_eval_features,
             )
             vectorized_datasets[eval_split] = (
                 map_fn_eval(num_proc=num_workers, desc="preprocess eval dataset")
@@ -1458,10 +1658,14 @@ def main():
         return min_input_length < length < max_input_length
 
     filter_by_audio_fn = partial(
-        vectorized_datasets.filter, function=is_audio_in_length_range, input_columns=["input_length"]
+        vectorized_datasets.filter,
+        function=is_audio_in_length_range,
+        input_columns=["input_length"],
     )
     vectorized_datasets = (
-        filter_by_audio_fn(num_proc=num_workers, desc="filtering train dataset by audio length")
+        filter_by_audio_fn(
+            num_proc=num_workers, desc="filtering train dataset by audio length"
+        )
         if not data_args.streaming
         else filter_by_audio_fn()
     )
@@ -1471,7 +1675,9 @@ def main():
         return 0 < len(labels) < max_label_length
 
     filter_by_labels_fn = partial(
-        vectorized_datasets.filter, function=is_labels_in_length_range, input_columns=["labels"]
+        vectorized_datasets.filter,
+        function=is_labels_in_length_range,
+        input_columns=["labels"],
     )
     vectorized_datasets = (
         filter_by_labels_fn(num_proc=num_workers, desc="filtering train dataset")
@@ -1493,14 +1699,18 @@ def main():
     metric = evaluate.load("wer")
     # convention is that we space all punctuation *except* apostrophes
     all_punctuation = list(string.punctuation.replace("'", ""))
-    return_timestamps = data_args.return_timestamps if data_args.timestamp_probability > 0 else False
+    return_timestamps = (
+        data_args.return_timestamps if data_args.timestamp_probability > 0 else False
+    )
 
     def compute_metrics(preds, labels):
         # replace padded labels by the padding token
         for idx in range(len(labels)):
             labels[idx][labels[idx] == -100] = tokenizer.pad_token_id
 
-        pred_str = tokenizer.batch_decode(preds, skip_special_tokens=True, decode_with_timestamps=return_timestamps)
+        pred_str = tokenizer.batch_decode(
+            preds, skip_special_tokens=True, decode_with_timestamps=return_timestamps
+        )
         # we do not want to group tokens when computing the metrics
         label_str = tokenizer.batch_decode(labels, skip_special_tokens=True)
 
@@ -1515,21 +1725,43 @@ def main():
             for punctuation in all_punctuation
             for i in range(len(label_str))
         ]
-        wer_ortho = 100 * metric.compute(predictions=spaced_pred_str, references=spaced_label_str)
+        wer_ortho = 100 * metric.compute(
+            predictions=spaced_pred_str, references=spaced_label_str
+        )
 
         # normalize everything and re-compute the WER
         norm_pred_str = [normalizer(pred) for pred in pred_str]
         norm_label_str = [normalizer(label) for label in label_str]
         # for logging, we need the pred/labels to match the norm_pred/norm_labels, so discard any filtered samples here
-        pred_str = [pred_str[i] for i in range(len(norm_pred_str)) if len(norm_label_str[i]) > 0]
-        label_str = [label_str[i] for i in range(len(norm_label_str)) if len(norm_label_str[i]) > 0]
+        pred_str = [
+            pred_str[i] for i in range(len(norm_pred_str)) if len(norm_label_str[i]) > 0
+        ]
+        label_str = [
+            label_str[i]
+            for i in range(len(norm_label_str))
+            if len(norm_label_str[i]) > 0
+        ]
         # filtering step to only evaluate the samples that correspond to non-zero normalized references:
-        norm_pred_str = [norm_pred_str[i] for i in range(len(norm_pred_str)) if len(norm_label_str[i]) > 0]
-        norm_label_str = [norm_label_str[i] for i in range(len(norm_label_str)) if len(norm_label_str[i]) > 0]
+        norm_pred_str = [
+            norm_pred_str[i]
+            for i in range(len(norm_pred_str))
+            if len(norm_label_str[i]) > 0
+        ]
+        norm_label_str = [
+            norm_label_str[i]
+            for i in range(len(norm_label_str))
+            if len(norm_label_str[i]) > 0
+        ]
 
         wer = 100 * metric.compute(predictions=norm_pred_str, references=norm_label_str)
 
-        return {"wer": wer, "wer_ortho": wer_ortho}, pred_str, label_str, norm_pred_str, norm_label_str
+        return (
+            {"wer": wer, "wer_ortho": wer_ortho},
+            pred_str,
+            label_str,
+            norm_pred_str,
+            norm_label_str,
+        )
 
     # 9. Save feature extractor, tokenizer, config and generation config
     feature_extractor.save_pretrained(training_args.output_dir)
@@ -1555,7 +1787,9 @@ def main():
     rng, dropout_rng = jax.random.split(rng)
 
     # Store some constants
-    train_batch_size = int(training_args.per_device_train_batch_size) * jax.device_count()
+    train_batch_size = (
+        int(training_args.per_device_train_batch_size) * jax.device_count()
+    )
     gradient_accumulation_steps = int(training_args.gradient_accumulation_steps)
     per_device_eval_batch_size = int(training_args.per_device_eval_batch_size)
     eval_batch_size = per_device_eval_batch_size * jax.device_count()
@@ -1565,13 +1799,17 @@ def main():
         steps_per_epoch = len(vectorized_datasets["train"]) // train_batch_size
         total_train_steps = steps_per_epoch * num_epochs
     elif training_args.max_steps > 0:
-        logger.info("max_steps is given, it will override any value given in num_train_epochs")
+        logger.info(
+            "max_steps is given, it will override any value given in num_train_epochs"
+        )
         total_train_steps = int(training_args.max_steps)
         # Setting a very large number of epochs so we go as many times as necessary over the iterator.
         num_epochs = sys.maxsize
         steps_per_epoch = total_train_steps
     else:
-        raise ValueError("max_steps must be specified when training with a streaming (iterable) dataset")
+        raise ValueError(
+            "max_steps must be specified when training with a streaming (iterable) dataset"
+        )
 
     if training_args.eval_steps is None:
         logger.info(
@@ -1608,7 +1846,10 @@ def main():
             for layer in flat_params.keys()
             if layer_norm_name in "".join(layer).lower()
         }
-        flat_mask = {path: path[-1] != "bias" and path[-2:] not in layer_norm_named_params for path in flat_params}
+        flat_mask = {
+            path: path[-1] != "bias" and path[-2:] not in layer_norm_named_params
+            for path in flat_params
+        }
         return traverse_util.unflatten_dict(flat_mask)
 
     # create adam optimizer
@@ -1625,7 +1866,10 @@ def main():
         # accumulate gradients and apply once every k steps
         adamw = optax.MultiSteps(adamw, every_k_schedule=gradient_accumulation_steps)
 
-    share_hidden_states = training_args.freeze_encoder and student_model.config.d_model == teacher_model.config.d_model
+    share_hidden_states = (
+        training_args.freeze_encoder
+        and student_model.config.d_model == teacher_model.config.d_model
+    )
     encoder_layer_mapping = get_layers_to_supervise(
         student_model.config.encoder_layers, teacher_model.config.encoder_layers
     )
@@ -1635,7 +1879,9 @@ def main():
 
     # Setup train state
     student_state = TrainState.create(
-        apply_fn=student_model.decode if share_hidden_states else student_model.__call__,
+        apply_fn=(
+            student_model.decode if share_hidden_states else student_model.__call__
+        ),
         params=student_params,
         tx=adamw,
         to_dtype=to_dtype,
@@ -1644,12 +1890,18 @@ def main():
     )
 
     if training_args.resume_from_checkpoint is not None:
-        if os.path.isfile(os.path.join(training_args.resume_from_checkpoint, "train_state.msgpack")):
+        if os.path.isfile(
+            os.path.join(training_args.resume_from_checkpoint, "train_state.msgpack")
+        ):
             logger.info(
                 f"Checkpoint detected, resuming training at {training_args.resume_from_checkpoint}. To avoid "
                 "this behavior, omit the resume_from_checkpoint argument."
             )
-            with Path(os.path.join(training_args.resume_from_checkpoint, "train_state.msgpack")).open("rb") as f:
+            with Path(
+                os.path.join(
+                    training_args.resume_from_checkpoint, "train_state.msgpack"
+                )
+            ).open("rb") as f:
                 student_state = from_bytes(student_state, f.read())
         else:
             logger.warning(
@@ -1670,8 +1922,12 @@ def main():
         return loss, num_labels
 
     # temperature smoothed kl-divergence
-    def kl_divergence(target_distribution, log_predicted_distribution, labels, eps=1e-20):
-        divergence = -target_distribution * (log_predicted_distribution - jnp.log(target_distribution + eps))
+    def kl_divergence(
+        target_distribution, log_predicted_distribution, labels, eps=1e-20
+    ):
+        divergence = -target_distribution * (
+            log_predicted_distribution - jnp.log(target_distribution + eps)
+        )
         # ignore padded tokens from divergence, i.e. where labels are not set to -100
         padding_mask = labels >= 0
         padding_mask = jnp.expand_dims(padding_mask, axis=-1)
@@ -1683,13 +1939,20 @@ def main():
 
         # tie encoder embeddings
         mse += jnp.mean(
-            jnp.square(teacher_outputs.encoder_hidden_states[0] - student_outputs.encoder_hidden_states[0])
+            jnp.square(
+                teacher_outputs.encoder_hidden_states[0]
+                - student_outputs.encoder_hidden_states[0]
+            )
         )
 
         for student_layer_id, teacher_layer_id in encoder_layer_mapping.items():
             # offset the hidden-state layer ids by 1 to account for the extra embedding hidden-state
-            student_hidden_state = student_outputs.encoder_hidden_states[student_layer_id + 1]
-            teacher_hidden_state = teacher_outputs.encoder_hidden_states[teacher_layer_id + 1]
+            student_hidden_state = student_outputs.encoder_hidden_states[
+                student_layer_id + 1
+            ]
+            teacher_hidden_state = teacher_outputs.encoder_hidden_states[
+                teacher_layer_id + 1
+            ]
             mse += jnp.mean(jnp.square(teacher_hidden_state - student_hidden_state))
 
             # student_attention = student_outputs.encoder_attentions[student_layer_id]
@@ -1698,13 +1961,20 @@ def main():
 
         # tie decoder embeddings
         mse += jnp.mean(
-            jnp.square(teacher_outputs.decoder_hidden_states[0] - student_outputs.decoder_hidden_states[0])
+            jnp.square(
+                teacher_outputs.decoder_hidden_states[0]
+                - student_outputs.decoder_hidden_states[0]
+            )
         )
 
         for student_layer_id, teacher_layer_id in decoder_layer_mapping.items():
             # offset the hidden-state layer ids by 1 to account for the extra embedding hidden-state
-            student_hidden_state = student_outputs.decoder_hidden_states[student_layer_id + 1]
-            teacher_hidden_state = teacher_outputs.decoder_hidden_states[teacher_layer_id + 1]
+            student_hidden_state = student_outputs.decoder_hidden_states[
+                student_layer_id + 1
+            ]
+            teacher_hidden_state = teacher_outputs.decoder_hidden_states[
+                teacher_layer_id + 1
+            ]
             mse += jnp.mean(jnp.square(teacher_hidden_state - student_hidden_state))
 
             # student_attention = student_outputs.decoder_attentions[student_layer_id]
@@ -1730,7 +2000,9 @@ def main():
 
         def compute_loss(student_params):
             labels = batch.pop("labels")
-            output_hidden_states = not share_hidden_states and training_args.mse_weight > 0.0
+            output_hidden_states = (
+                not share_hidden_states and training_args.mse_weight > 0.0
+            )
 
             teacher_outputs = teacher_model(
                 **batch,
@@ -1743,8 +2015,12 @@ def main():
             if share_hidden_states:
                 # if the student and teacher share the same frozen encoder then we don't have to recompute the
                 # encoder hidden-states for the student model, we can just re-use from the teacher
-                encoder_hidden_states = jax.lax.stop_gradient(teacher_outputs.encoder_last_hidden_state)
-                encoder_outputs = FlaxBaseModelOutput(last_hidden_state=encoder_hidden_states)
+                encoder_hidden_states = jax.lax.stop_gradient(
+                    teacher_outputs.encoder_last_hidden_state
+                )
+                encoder_outputs = FlaxBaseModelOutput(
+                    last_hidden_state=encoder_hidden_states
+                )
 
                 student_outputs = student_state.apply_fn(
                     decoder_input_ids=batch["decoder_input_ids"],
@@ -1768,13 +2044,20 @@ def main():
             ce_loss, num_labels = cross_entropy_loss(student_outputs.logits, labels)
 
             # rescale by temperature to ensure gradients scale correctly
-            teacher_distribution = jax.nn.softmax(teacher_outputs.logits / temperature, axis=-1)
+            teacher_distribution = jax.nn.softmax(
+                teacher_outputs.logits / temperature, axis=-1
+            )
             # ensure no information flow backwards through teacher
             teacher_distribution = jax.lax.stop_gradient(teacher_distribution)
             # log softmax of student predictions for numerical stability
-            student_distribution = jax.nn.log_softmax(student_outputs.logits / temperature, axis=-1)
+            student_distribution = jax.nn.log_softmax(
+                student_outputs.logits / temperature, axis=-1
+            )
             # KL-divergence loss (scaled by temperature)
-            kl_loss = kl_divergence(teacher_distribution, student_distribution, labels) * temperature**2
+            kl_loss = (
+                kl_divergence(teacher_distribution, student_distribution, labels)
+                * temperature**2
+            )
 
             # MSE loss between enc-dec hidden-states and attentions
             mse_loss = (
@@ -1785,7 +2068,11 @@ def main():
 
             # use DistilBart formulation - only tune the MSE weight and take remaining HPs from DistilBERT
             ce_weight = 0.8 if training_args.kl_weight > 0 else 1.0
-            loss = ce_weight * ce_loss + training_args.kl_weight * kl_loss + training_args.mse_weight * mse_loss
+            loss = (
+                ce_weight * ce_loss
+                + training_args.kl_weight * kl_loss
+                + training_args.mse_weight * mse_loss
+            )
 
             return loss, (
                 ce_loss,
@@ -1795,7 +2082,9 @@ def main():
             )
 
         grad_fn = jax.value_and_grad(compute_loss, has_aux=True)
-        (loss, (ce_loss, kl_loss, mse_loss, num_labels)), grad = grad_fn(to_dtype(student_state.params))
+        (loss, (ce_loss, kl_loss, mse_loss, num_labels)), grad = grad_fn(
+            to_dtype(student_state.params)
+        )
 
         # true loss = total loss / total samples
         loss = jax.lax.psum(loss, "batch")
@@ -1805,7 +2094,9 @@ def main():
         # true grad = total grad / total samples
         grad = jax.lax.psum(grad, "batch")
         grad = jax.tree_util.tree_map(lambda x: x / num_labels, grad)
-        new_state = student_state.apply_gradients(grads=grad, dropout_rng=new_dropout_rng, to_dtype=to_dtype)
+        new_state = student_state.apply_gradients(
+            grads=grad, dropout_rng=new_dropout_rng, to_dtype=to_dtype
+        )
 
         # CE/KL/MSE losses for logging
         ce_loss = jax.lax.psum(ce_loss, "batch")
@@ -1857,7 +2148,11 @@ def main():
         )
 
         ce_weight = 0.8 if training_args.kl_weight > 0 else 1.0
-        loss = ce_weight * ce_loss + training_args.kl_weight * kl_loss + training_args.mse_weight * mse_loss
+        loss = (
+            ce_weight * ce_loss
+            + training_args.kl_weight * kl_loss
+            + training_args.mse_weight * mse_loss
+        )
         # true loss = total loss / total samples
         loss = jax.lax.psum(loss, "batch")
         num_labels = jax.lax.psum(num_labels, "batch")
@@ -1873,7 +2168,12 @@ def main():
         mse_loss = jax.lax.psum(mse_loss, "batch")
         mse_loss = jax.tree_util.tree_map(lambda x: x / num_labels, mse_loss)
 
-        metrics = {"loss": loss, "ce_loss": ce_loss, "kl_loss": kl_loss, "mse_loss": mse_loss}
+        metrics = {
+            "loss": loss,
+            "ce_loss": ce_loss,
+            "kl_loss": kl_loss,
+            "mse_loss": mse_loss,
+        }
         return metrics
 
     # Define generation function
@@ -1922,8 +2222,13 @@ def main():
     p_generate_step = jax.pmap(generate_step, "batch")
 
     logger.info("***** Running training *****")
-    logger.info(f"  Num examples = {total_train_steps * train_batch_size * gradient_accumulation_steps}")
-    logger.info("  Instantaneous batch size per device =" f" {training_args.per_device_train_batch_size}")
+    logger.info(
+        f"  Num examples = {total_train_steps * train_batch_size * gradient_accumulation_steps}"
+    )
+    logger.info(
+        "  Instantaneous batch size per device ="
+        f" {training_args.per_device_train_batch_size}"
+    )
     logger.info("  Gradient accumulation steps =" f" {gradient_accumulation_steps}")
     logger.info(
         f"  Total train batch size (w. parallel & distributed) = {train_batch_size * gradient_accumulation_steps}"
@@ -1937,13 +2242,17 @@ def main():
     batches_to_skip = jax.device_get(unreplicate(student_state.step))
     cur_step = int(batches_to_skip)  # will be zero if starting from scratch
     epochs_trained = batches_to_skip // steps_per_epoch
-    steps_trained_progress_bar = tqdm(range(total_train_steps), desc="Train steps ... ", position=0)
+    steps_trained_progress_bar = tqdm(
+        range(total_train_steps), desc="Train steps ... ", position=0
+    )
     steps_trained_progress_bar.update(batches_to_skip)
     continue_training = True
     minibatch_steps = 0
 
     if batches_to_skip > 0:
-        logger.info("  Continuing training from checkpoint, will skip to saved global_step")
+        logger.info(
+            "  Continuing training from checkpoint, will skip to saved global_step"
+        )
         logger.info(f"  Continuing training from epoch {epochs_trained}")
         logger.info(f"  Continuing training from global step {batches_to_skip}")
 
@@ -1959,7 +2268,9 @@ def main():
     )
 
     for epoch in range(epochs_trained, num_epochs):
-        if hasattr(train_loader, "dataset") and isinstance(train_loader.dataset, IterableDataset):
+        if hasattr(train_loader, "dataset") and isinstance(
+            train_loader.dataset, IterableDataset
+        ):
             train_loader.dataset.set_epoch(epoch)
 
         for batch in train_loader:
@@ -2000,7 +2311,9 @@ def main():
                     )
 
             # save checkpoint and weights after each save_steps and at the end of training
-            if (cur_step % training_args.save_steps == 0 and update_step) or cur_step == total_train_steps:
+            if (
+                cur_step % training_args.save_steps == 0 and update_step
+            ) or cur_step == total_train_steps:
                 if jax.process_index() == 0:
                     save_hf_weights(
                         student_state,
@@ -2013,7 +2326,8 @@ def main():
                     )
                     if training_args.save_train_state:
                         student_state.save_state(
-                            training_args.output_dir, save_total_limit=training_args.save_total_limit
+                            training_args.output_dir,
+                            save_total_limit=training_args.save_total_limit,
                         )
                     if training_args.push_to_hub:
                         repo.push_to_hub(
@@ -2022,7 +2336,8 @@ def main():
                         )
 
             if training_args.do_eval and (
-                (cur_step % eval_steps == 0 and update_step) or cur_step == total_train_steps
+                (cur_step % eval_steps == 0 and update_step)
+                or cur_step == total_train_steps
             ):
                 train_time += time.time() - train_start
                 # ======================== Evaluating ==============================
@@ -2041,7 +2356,9 @@ def main():
                         drop_last=False,
                         dataloader_num_workers=dataloader_num_workers,
                     )
-                    for batch in tqdm(eval_loader, desc=f"Evaluating {eval_split}...", position=2):
+                    for batch in tqdm(
+                        eval_loader, desc=f"Evaluating {eval_split}...", position=2
+                    ):
                         # Model forward
                         labels = batch["labels"]
 
@@ -2063,9 +2380,15 @@ def main():
                         # generation
                         if training_args.predict_with_generate:
                             generated_ids = pad_shard_unpad(p_generate_step)(
-                                student_state.params, batch.data, min_device_batch=per_device_eval_batch_size
+                                student_state.params,
+                                batch.data,
+                                min_device_batch=per_device_eval_batch_size,
                             )
-                            eval_preds.extend(jax.device_get(generated_ids.reshape(-1, gen_kwargs["max_length"])))
+                            eval_preds.extend(
+                                jax.device_get(
+                                    generated_ids.reshape(-1, gen_kwargs["max_length"])
+                                )
+                            )
                             eval_labels.extend(labels)
 
                     eval_time = time.time() - eval_start
@@ -2077,11 +2400,20 @@ def main():
                     # compute WER metric
                     wer_desc = ""
                     if training_args.predict_with_generate:
-                        wer_metric, pred_str, label_str, norm_pred_str, norm_label_str = compute_metrics(
-                            eval_preds, eval_labels
-                        )
+                        (
+                            wer_metric,
+                            pred_str,
+                            label_str,
+                            norm_pred_str,
+                            norm_label_str,
+                        ) = compute_metrics(eval_preds, eval_labels)
                         eval_metrics.update(wer_metric)
-                        wer_desc = " ".join([f"Eval {key}: {value} |" for key, value in wer_metric.items()])
+                        wer_desc = " ".join(
+                            [
+                                f"Eval {key}: {value} |"
+                                for key, value in wer_metric.items()
+                            ]
+                        )
 
                     # Print metrics and update progress bar
                     steps_trained_progress_bar.write(
@@ -2098,7 +2430,14 @@ def main():
                         )
 
                     if has_wandb and jax.process_index() == 0:
-                        write_wandb_metric(wandb_logger, eval_metrics, eval_time, cur_step, epoch, prefix=eval_split)
+                        write_wandb_metric(
+                            wandb_logger,
+                            eval_metrics,
+                            eval_time,
+                            cur_step,
+                            epoch,
+                            prefix=eval_split,
+                        )
                         if training_args.predict_with_generate:
                             write_wandb_pred(
                                 wandb_logger,

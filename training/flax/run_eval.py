@@ -78,19 +78,29 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        metadata={"help": ("Path to pretrained model or model identifier from huggingface.co/models")}
+        metadata={
+            "help": (
+                "Path to pretrained model or model identifier from huggingface.co/models"
+            )
+        }
     )
     config_name: Optional[str] = field(
         default=None,
-        metadata={"help": "Pretrained config name or path if not the same as model_name"},
+        metadata={
+            "help": "Pretrained config name or path if not the same as model_name"
+        },
     )
     tokenizer_name: Optional[str] = field(
         default=None,
-        metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"},
+        metadata={
+            "help": "Pretrained tokenizer name or path if not the same as model_name"
+        },
     )
     feature_extractor_name: Optional[str] = field(
         default=None,
-        metadata={"help": "feature extractor name or path if not the same as model_name"},
+        metadata={
+            "help": "feature extractor name or path if not the same as model_name"
+        },
     )
     processor_name: Optional[str] = field(
         default=None,
@@ -98,15 +108,27 @@ class ModelArguments:
     )
     cache_dir: Optional[str] = field(
         default=None,
-        metadata={"help": ("Where to store the pretrained models downloaded from huggingface.co")},
+        metadata={
+            "help": (
+                "Where to store the pretrained models downloaded from huggingface.co"
+            )
+        },
     )
     use_fast_tokenizer: bool = field(
         default=True,
-        metadata={"help": ("Whether to use one of the fast tokenizer (backed by the tokenizers library) or not.")},
+        metadata={
+            "help": (
+                "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."
+            )
+        },
     )
     model_revision: str = field(
         default="main",
-        metadata={"help": ("The specific model version to use (can be a branch name, tag name or commit id).")},
+        metadata={
+            "help": (
+                "The specific model version to use (can be a branch name, tag name or commit id)."
+            )
+        },
     )
     subfolder: str = field(
         default="",
@@ -142,7 +164,10 @@ class ModelArguments:
         },
     )
     return_timestamps: bool = field(
-        default=False, metadata={"help": "Whether or not to predict timestamps in the generation step."}
+        default=False,
+        metadata={
+            "help": "Whether or not to predict timestamps in the generation step."
+        },
     )
 
 
@@ -161,11 +186,15 @@ class DataTrainingArguments:
     )
     dataset_config_name: Optional[str] = field(
         default=None,
-        metadata={"help": "The configuration name of the dataset to use (via the datasets library)."},
+        metadata={
+            "help": "The configuration name of the dataset to use (via the datasets library)."
+        },
     )
     dataset_split_name: Optional[str] = field(
         default=None,
-        metadata={"help": "The split name of the dataset to use (via the datasets library)."},
+        metadata={
+            "help": "The split name of the dataset to use (via the datasets library)."
+        },
     )
     dataset_cache_dir: Optional[str] = field(
         default=None,
@@ -181,23 +210,33 @@ class DataTrainingArguments:
     )
     audio_column_name: str = field(
         default="audio",
-        metadata={"help": "The name of the dataset column containing the audio data. Defaults to 'audio'"},
+        metadata={
+            "help": "The name of the dataset column containing the audio data. Defaults to 'audio'"
+        },
     )
     text_column_name: str = field(
         default=None,
-        metadata={"help": "The name of the dataset column containing the text data. Defaults to `text`."},
+        metadata={
+            "help": "The name of the dataset column containing the text data. Defaults to `text`."
+        },
     )
     max_duration_in_seconds: float = field(
         default=30.0,
-        metadata={"help": "Filter audio files that are longer than `max_duration_in_seconds` seconds"},
+        metadata={
+            "help": "Filter audio files that are longer than `max_duration_in_seconds` seconds"
+        },
     )
     min_duration_in_seconds: float = field(
         default=0.0,
-        metadata={"help": "Filter audio files that are shorter than `min_duration_in_seconds` seconds"},
+        metadata={
+            "help": "Filter audio files that are shorter than `min_duration_in_seconds` seconds"
+        },
     )
     max_label_length: int = field(
         default=128,
-        metadata={"help": "Truncate transcriptions that are longer `max_label_length` tokens."},
+        metadata={
+            "help": "Truncate transcriptions that are longer `max_label_length` tokens."
+        },
     )
     pad_target_to_multiple_of: Optional[int] = field(
         default=None,
@@ -250,15 +289,21 @@ class DataTrainingArguments:
     )
     streaming: bool = field(
         default=True,
-        metadata={"help": "Whether to use Datasets' streaming mode to load and the data."},
+        metadata={
+            "help": "Whether to use Datasets' streaming mode to load and the data."
+        },
     )
     max_eval_samples: Optional[int] = field(
         default=None,
-        metadata={"help": "For debugging purposes, truncate the number of eval examples to this value if set."},
+        metadata={
+            "help": "For debugging purposes, truncate the number of eval examples to this value if set."
+        },
     )
     log_audio: Optional[bool] = field(
         default=False,
-        metadata={"help": "For debugging purposes, record the audio samples as well as the ground truths / preds."},
+        metadata={
+            "help": "For debugging purposes, record the audio samples as well as the ground truths / preds."
+        },
     )
 
 
@@ -310,13 +355,17 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
     log_audio: Optional[bool] = False
     audio_column_name: Optional[str] = "audio"
 
-    def __call__(self, features: List[Dict[str, Union[List[int], np.ndarray]]]) -> Dict[str, np.ndarray]:
+    def __call__(
+        self, features: List[Dict[str, Union[List[int], np.ndarray]]]
+    ) -> Dict[str, np.ndarray]:
         # split inputs and labels since they have to be of different lengths and need
         # different padding methods
         model_input_name = self.processor.model_input_names[0]
 
         # dataloader returns a list of features which we convert to a dict
-        input_features = {model_input_name: [feature[model_input_name] for feature in features]}
+        input_features = {
+            model_input_name: [feature[model_input_name] for feature in features]
+        }
         label_features = {"input_ids": [feature["labels"] for feature in features]}
 
         # reformat list to dict and set to pytorch format
@@ -403,11 +452,15 @@ def write_wandb_metric(wandb_logger, metrics, train_time, prefix):
     for k, v in metrics.items():
         log_metrics[f"{prefix}/{k}"] = v
     log_metrics[f"{prefix}/time"] = train_time
-    wandb_logger.log(log_metrics)  # TODO(SG): bug with wandb means we can't log the step count
+    wandb_logger.log(
+        log_metrics
+    )  # TODO(SG): bug with wandb means we can't log the step count
 
 
 def convert_audio_to_wandb(wandb_logger, audio):
-    return wandb_logger.Audio(audio["array"][:, np.newaxis], sample_rate=audio["sampling_rate"])
+    return wandb_logger.Audio(
+        audio["array"][:, np.newaxis], sample_rate=audio["sampling_rate"]
+    )
 
 
 def write_wandb_pred(
@@ -422,7 +475,10 @@ def write_wandb_pred(
 ):
     columns = ["Target", "Pred", "Norm Target", "Norm Pred"]
     # convert str data to a wandb compatible format
-    str_data = [[label_str[i], pred_str[i], norm_label_str[i], norm_pred_str[i]] for i in range(len(pred_str))]
+    str_data = [
+        [label_str[i], pred_str[i], norm_label_str[i], norm_pred_str[i]]
+        for i in range(len(pred_str))
+    ]
 
     if len(eval_audios) > 0:
         columns.insert(0, "Audio")
@@ -436,19 +492,32 @@ def write_wandb_pred(
 
     # log as a table with the appropriate headers
     wandb_logger.log(
-        {f"{prefix}/all_predictions": wandb_logger.Table(columns=columns, data=str_data[:num_lines])},
+        {
+            f"{prefix}/all_predictions": wandb_logger.Table(
+                columns=columns, data=str_data[:num_lines]
+            )
+        },
     )
     # log incorrect normalised predictions
     str_data = np.asarray(str_data)
     str_data_incorrect = str_data[str_data[:, -2] != str_data[:, -1]]
     # log as a table with the appropriate headers
     wandb_logger.log(
-        {f"{prefix}/incorrect_predictions": wandb_logger.Table(columns=columns, data=str_data_incorrect[:num_lines])},
+        {
+            f"{prefix}/incorrect_predictions": wandb_logger.Table(
+                columns=columns, data=str_data_incorrect[:num_lines]
+            )
+        },
     )
 
 
 def convert_dataset_str_to_list(
-    dataset_names, dataset_config_names, splits=None, text_column_names=None, dataset_hours=None, default_split="train"
+    dataset_names,
+    dataset_config_names,
+    splits=None,
+    text_column_names=None,
+    dataset_hours=None,
+    default_split="train",
 ):
     if isinstance(dataset_names, str):
         dataset_names = dataset_names.split("+")
@@ -456,11 +525,15 @@ def convert_dataset_str_to_list(
         # we assume that all the datasets we're using derive from the distil-whisper org on the Hub - prepend the org name if necessary
         for i in range(len(dataset_names)):
             ds_name = dataset_names[i]
-            dataset_names[i] = f"distil-whisper/{ds_name}" if "/" not in ds_name else ds_name
+            dataset_names[i] = (
+                f"distil-whisper/{ds_name}" if "/" not in ds_name else ds_name
+            )
 
         dataset_config_names = dataset_config_names.split("+")
         splits = splits.split("+") if splits is not None else None
-        text_column_names = text_column_names.split("+") if text_column_names is not None else None
+        text_column_names = (
+            text_column_names.split("+") if text_column_names is not None else None
+        )
         dataset_hours = dataset_hours.split("+") if dataset_hours is not None else None
 
     # basic checks to ensure we've got the right number of datasets/configs/splits/columns/probs
@@ -492,9 +565,15 @@ def convert_dataset_str_to_list(
         dataset_hours = [None] * len(dataset_names)
 
     text_column_names = (
-        text_column_names if text_column_names is not None else ["text" for _ in range(len(dataset_names))]
+        text_column_names
+        if text_column_names is not None
+        else ["text" for _ in range(len(dataset_names))]
     )
-    splits = splits if splits is not None else [default_split for _ in range(len(dataset_names))]
+    splits = (
+        splits
+        if splits is not None
+        else [default_split for _ in range(len(dataset_names))]
+    )
 
     dataset_names_dict = []
     for i, ds_name in enumerate(dataset_names):
@@ -520,7 +599,9 @@ class FlaxWhisperFeatureExtractor(WhisperFeatureExtractor):
         waveform = torch.from_numpy(waveform).type(torch.float32)
 
         window = torch.hann_window(self.n_fft)
-        stft = torch.stft(waveform, self.n_fft, self.hop_length, window=window, return_complex=True)
+        stft = torch.stft(
+            waveform, self.n_fft, self.hop_length, window=window, return_complex=True
+        )
         magnitudes = stft[..., :-1].abs() ** 2
 
         mel_filters = torch.from_numpy(self.mel_filters).type(torch.float32)
@@ -537,18 +618,24 @@ def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
+    parser = HfArgumentParser(
+        (ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments)
+    )
 
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args = parser.parse_json_file(
+            json_file=os.path.abspath(sys.argv[1])
+        )
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
     # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # information sent is the one passed as arguments along with your JAX/Flax versions.
-    send_example_telemetry("run_flax_speech_recognition_seq2seq", model_args, data_args, framework="flax")
+    send_example_telemetry(
+        "run_flax_speech_recognition_seq2seq", model_args, data_args, framework="flax"
+    )
 
     # 2. Setup logging
     # Make one log on every process with the configuration for debugging.
@@ -580,7 +667,8 @@ def main():
             except ImportError as ie:
                 has_tensorboard = False
                 logger.warning(
-                    "Unable to display metrics through TensorBoard because some" f" package are not installed: {ie}"
+                    "Unable to display metrics through TensorBoard because some"
+                    f" package are not installed: {ie}"
                 )
         else:
             logger.warning(
@@ -603,7 +691,9 @@ def main():
                 save_code=data_args.save_code_to_wandb,
             )
         else:
-            logger.warning("Wandb logging requires wandb to be installed. Run `pip install wandb` to enable.")
+            logger.warning(
+                "Wandb logging requires wandb to be installed. Run `pip install wandb` to enable."
+            )
 
     # 3. Load dataset
     raw_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
@@ -629,14 +719,18 @@ def main():
             use_auth_token=True if model_args.use_auth_token else None,
             streaming=data_args.streaming,
         )
-        if dataset_dict["text_column_name"] not in list(raw_datasets["eval"].features.keys()):
+        if dataset_dict["text_column_name"] not in list(
+            raw_datasets["eval"].features.keys()
+        ):
             raise ValueError(
                 f"--text column name {dataset_dict['text_column_name']} not found in the evaluation "
                 f"dataset {dataset_dict['name']}. Ensure `text_column_name` is set to the correct column "
                 f"for the target text. Should be one of {' '.join(list(raw_datasets['eval'].features.keys()))}"
             )
         if dataset_dict["text_column_name"] != "text":
-            raw_datasets["eval"] = raw_datasets["eval"].rename_column(dataset_dict["text_column_name"], "text")
+            raw_datasets["eval"] = raw_datasets["eval"].rename_column(
+                dataset_dict["text_column_name"], "text"
+            )
     else:
         # load multiple eval sets
         for dataset_dict in tqdm(dataset_names_dict, desc="Loading datasets..."):
@@ -651,7 +745,9 @@ def main():
                 use_auth_token=True if model_args.use_auth_token else None,
                 streaming=data_args.streaming,
             )
-            if dataset_dict["text_column_name"] not in list(raw_datasets[pretty_name].features.keys()):
+            if dataset_dict["text_column_name"] not in list(
+                raw_datasets[pretty_name].features.keys()
+            ):
                 raise ValueError(
                     f"`--text_column_name` {dataset_dict['text_column_name']} not found in the evaluation "
                     f"dataset {dataset_dict['name']}. Ensure `text_column_name` is set to the correct column "
@@ -664,26 +760,42 @@ def main():
 
     # 5. Load pretrained model, tokenizer, and feature extractor
     config = WhisperConfig.from_pretrained(
-        (model_args.config_name if model_args.config_name else model_args.model_name_or_path),
+        (
+            model_args.config_name
+            if model_args.config_name
+            else model_args.model_name_or_path
+        ),
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
     feature_extractor = FlaxWhisperFeatureExtractor.from_pretrained(
-        (model_args.feature_extractor_name if model_args.feature_extractor_name else model_args.model_name_or_path),
+        (
+            model_args.feature_extractor_name
+            if model_args.feature_extractor_name
+            else model_args.model_name_or_path
+        ),
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
     tokenizer = WhisperTokenizerFast.from_pretrained(
-        (model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path),
+        (
+            model_args.tokenizer_name
+            if model_args.tokenizer_name
+            else model_args.model_name_or_path
+        ),
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
     processor = WhisperProcessor.from_pretrained(
-        (model_args.processor_name if model_args.processor_name else model_args.model_name_or_path),
+        (
+            model_args.processor_name
+            if model_args.processor_name
+            else model_args.model_name_or_path
+        ),
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
@@ -702,12 +814,16 @@ def main():
     )
 
     if model.config.decoder_start_token_id is None:
-        raise ValueError("Make sure that `config.decoder_start_token_id` is correctly defined")
+        raise ValueError(
+            "Make sure that `config.decoder_start_token_id` is correctly defined"
+        )
 
     # disable scan if necessary (makes the inference step faster)
     if model_args.load_with_scan:
         model.disable_scan()  # to disable scan in the nn.Module
-        params = model.convert_scan_to_unroll(params)  # to convert the scan params to unrolled
+        params = model.convert_scan_to_unroll(
+            params
+        )  # to convert the scan params to unrolled
 
     # 6. Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
@@ -719,7 +835,9 @@ def main():
     # 7. Preprocessing the datasets.
     # We need to read the audio files as arrays and tokenize the targets.
     max_label_length = (
-        data_args.max_label_length if data_args.max_label_length is not None else model.config.max_length
+        data_args.max_label_length
+        if data_args.max_label_length is not None
+        else model.config.max_length
     )
     audio_column_name = data_args.audio_column_name
     num_workers = data_args.preprocessing_num_workers
@@ -738,16 +856,22 @@ def main():
     def prepare_dataset(batch):
         # process audio
         sample = batch[audio_column_name]
-        inputs = feature_extractor(sample["array"], sampling_rate=sample["sampling_rate"])
+        inputs = feature_extractor(
+            sample["array"], sampling_rate=sample["sampling_rate"]
+        )
         # process audio length
         batch[model_input_name] = inputs.get(model_input_name)[0]
 
         # process targets
         input_str = batch["text"]
-        batch["labels"] = tokenizer(input_str, max_length=max_label_length, truncation=True).input_ids
+        batch["labels"] = tokenizer(
+            input_str, max_length=max_label_length, truncation=True
+        ).input_ids
         return batch
 
-    vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
+    vectorized_datasets = (
+        IterableDatasetDict() if data_args.streaming else DatasetDict()
+    )
 
     for split in raw_datasets:
         raw_datasets_features = list(raw_datasets[split].features.keys())
@@ -788,7 +912,9 @@ def main():
         for idx in range(len(labels)):
             labels[idx][labels[idx] == -100] = tokenizer.pad_token_id
 
-        pred_str = tokenizer.batch_decode(preds, skip_special_tokens=True, decode_with_timestamps=return_timestamps)
+        pred_str = tokenizer.batch_decode(
+            preds, skip_special_tokens=True, decode_with_timestamps=return_timestamps
+        )
         # we do not want to group tokens when computing the metrics
         label_str = tokenizer.batch_decode(labels, skip_special_tokens=True)
 
@@ -803,21 +929,43 @@ def main():
             for punctuation in all_punctuation
             for i in range(len(label_str))
         ]
-        wer_ortho = 100 * metric.compute(predictions=spaced_pred_str, references=spaced_label_str)
+        wer_ortho = 100 * metric.compute(
+            predictions=spaced_pred_str, references=spaced_label_str
+        )
 
         # normalize everything and re-compute the WER
         norm_pred_str = [normalizer(pred) for pred in pred_str]
         norm_label_str = [normalizer(label) for label in label_str]
         # for logging, we need the pred/labels to match the norm_pred/norm_labels, so discard any filtered samples here
-        pred_str = [pred_str[i] for i in range(len(norm_pred_str)) if len(norm_label_str[i]) > 0]
-        label_str = [label_str[i] for i in range(len(norm_label_str)) if len(norm_label_str[i]) > 0]
+        pred_str = [
+            pred_str[i] for i in range(len(norm_pred_str)) if len(norm_label_str[i]) > 0
+        ]
+        label_str = [
+            label_str[i]
+            for i in range(len(norm_label_str))
+            if len(norm_label_str[i]) > 0
+        ]
         # filtering step to only evaluate the samples that correspond to non-zero normalized references:
-        norm_pred_str = [norm_pred_str[i] for i in range(len(norm_pred_str)) if len(norm_label_str[i]) > 0]
-        norm_label_str = [norm_label_str[i] for i in range(len(norm_label_str)) if len(norm_label_str[i]) > 0]
+        norm_pred_str = [
+            norm_pred_str[i]
+            for i in range(len(norm_pred_str))
+            if len(norm_label_str[i]) > 0
+        ]
+        norm_label_str = [
+            norm_label_str[i]
+            for i in range(len(norm_label_str))
+            if len(norm_label_str[i]) > 0
+        ]
 
         wer = 100 * metric.compute(predictions=norm_pred_str, references=norm_label_str)
 
-        return {"wer": wer, "wer_ortho": wer_ortho}, pred_str, label_str, norm_pred_str, norm_label_str
+        return (
+            {"wer": wer, "wer_ortho": wer_ortho},
+            pred_str,
+            label_str,
+            norm_pred_str,
+            norm_label_str,
+        )
 
     data_collator = FlaxDataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
@@ -842,9 +990,12 @@ def main():
         confidence = 1.0 - label_smoothing_factor
         low_confidence = (1.0 - confidence) / (vocab_size - 1)
         normalizing_constant = -(
-            confidence * jnp.log(confidence) + (vocab_size - 1) * low_confidence * jnp.log(low_confidence + 1e-20)
+            confidence * jnp.log(confidence)
+            + (vocab_size - 1) * low_confidence * jnp.log(low_confidence + 1e-20)
         )
-        soft_labels = onehot(labels, vocab_size, on_value=confidence, off_value=low_confidence)
+        soft_labels = onehot(
+            labels, vocab_size, on_value=confidence, off_value=low_confidence
+        )
 
         loss = optax.softmax_cross_entropy(logits, soft_labels)
         loss = loss - normalizing_constant
@@ -937,7 +1088,9 @@ def main():
                 generated_ids = pad_shard_unpad(p_generate_step)(
                     params, batch.data, min_device_batch=per_device_eval_batch_size
                 )
-                eval_preds.extend(jax.device_get(generated_ids.reshape(-1, gen_kwargs["max_length"])))
+                eval_preds.extend(
+                    jax.device_get(generated_ids.reshape(-1, gen_kwargs["max_length"]))
+                )
                 eval_labels.extend(labels)
 
         eval_time = time.time() - eval_start
@@ -949,27 +1102,50 @@ def main():
         # compute WER metric
         wer_desc = ""
         if training_args.predict_with_generate:
-            wer_metric, pred_str, label_str, norm_pred_str, norm_label_str = compute_metrics(eval_preds, eval_labels)
+            wer_metric, pred_str, label_str, norm_pred_str, norm_label_str = (
+                compute_metrics(eval_preds, eval_labels)
+            )
             eval_metrics.update(wer_metric)
-            wer_desc = " ".join([f"Eval {key}: {value} |" for key, value in wer_metric.items()])
+            wer_desc = " ".join(
+                [f"Eval {key}: {value} |" for key, value in wer_metric.items()]
+            )
 
         # Print metrics
         logger.info(f"Eval Loss: {eval_metrics['loss']} | {wer_desc})")
 
         # Save metrics
-        if has_tensorboard and jax.process_index() == 0 and "tensorboard" in training_args.report_to:
+        if (
+            has_tensorboard
+            and jax.process_index() == 0
+            and "tensorboard" in training_args.report_to
+        ):
             write_metric(summary_writer, eval_metrics, model_args.step, prefix=split)
 
-        if has_wandb and jax.process_index() == 0 and "wandb" in training_args.report_to:
+        if (
+            has_wandb
+            and jax.process_index() == 0
+            and "wandb" in training_args.report_to
+        ):
             write_wandb_metric(wandb_logger, eval_metrics, eval_time, prefix=split)
             if training_args.predict_with_generate:
                 write_wandb_pred(
-                    wandb_logger, eval_audios, pred_str, label_str, norm_pred_str, norm_label_str, prefix=split
+                    wandb_logger,
+                    eval_audios,
+                    pred_str,
+                    label_str,
+                    norm_pred_str,
+                    norm_label_str,
+                    prefix=split,
                 )
 
     logger.info("***** Running Eval *****")
-    logger.info("  Instantaneous batch size per device =" f" {training_args.per_device_eval_batch_size}")
-    logger.info(f"  Total eval batch size (w. parallel & distributed) = {eval_batch_size}")
+    logger.info(
+        "  Instantaneous batch size per device ="
+        f" {training_args.per_device_eval_batch_size}"
+    )
+    logger.info(
+        f"  Total eval batch size (w. parallel & distributed) = {eval_batch_size}"
+    )
     for split in vectorized_datasets:
         eval_step(split=split)
 

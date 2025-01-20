@@ -67,23 +67,41 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        metadata={"help": ("Path to pretrained student model or model identifier from huggingface.co/models")}
+        metadata={
+            "help": (
+                "Path to pretrained student model or model identifier from huggingface.co/models"
+            )
+        }
     )
     config_name: Optional[str] = field(
         default=None,
-        metadata={"help": "Pretrained config name or path if not the same as model_name"},
+        metadata={
+            "help": "Pretrained config name or path if not the same as model_name"
+        },
     )
     cache_dir: Optional[str] = field(
         default=None,
-        metadata={"help": ("Where to store the pretrained models downloaded from huggingface.co")},
+        metadata={
+            "help": (
+                "Where to store the pretrained models downloaded from huggingface.co"
+            )
+        },
     )
     use_fast_tokenizer: bool = field(
         default=True,
-        metadata={"help": ("Whether to use one of the fast tokenizer (backed by the tokenizers library) or not.")},
+        metadata={
+            "help": (
+                "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."
+            )
+        },
     )
     model_revision: str = field(
         default="main",
-        metadata={"help": ("The specific model version to use (can be a branch name, tag name or commit id).")},
+        metadata={
+            "help": (
+                "The specific model version to use (can be a branch name, tag name or commit id)."
+            )
+        },
     )
     use_auth_token: bool = field(
         default=False,
@@ -112,12 +130,19 @@ class ModelArguments:
     )
     use_scan: bool = field(
         default=True,
-        metadata={"help": ("Whether or not to use `scan_with_axes` over the encoder and decoder blocks.")},
+        metadata={
+            "help": (
+                "Whether or not to use `scan_with_axes` over the encoder and decoder blocks."
+            )
+        },
     )
 
 
 def create_learning_rate_fn(
-    num_train_steps: int, lr_scheduler_type: str, num_warmup_steps: int, learning_rate: float
+    num_train_steps: int,
+    lr_scheduler_type: str,
+    num_warmup_steps: int,
+    learning_rate: float,
 ) -> Callable[[int], jnp.array]:
     """Returns a linear warmup, linear_decay learning rate function."""
     lr_scheduler_types = ("linear", "constant_with_warmup")
@@ -127,13 +152,17 @@ def create_learning_rate_fn(
             f"lr_scheduler_type of type {lr_scheduler_type} not supported, choose from {lr_scheduler_types}."
         )
 
-    warmup_fn = optax.linear_schedule(init_value=0.0, end_value=learning_rate, transition_steps=num_warmup_steps)
+    warmup_fn = optax.linear_schedule(
+        init_value=0.0, end_value=learning_rate, transition_steps=num_warmup_steps
+    )
     decay_fn = optax.linear_schedule(
         init_value=learning_rate,
         end_value=0 if lr_scheduler_type == "linear" else learning_rate,
         transition_steps=num_train_steps - num_warmup_steps,
     )
-    schedule_fn = optax.join_schedules(schedules=[warmup_fn, decay_fn], boundaries=[num_warmup_steps])
+    schedule_fn = optax.join_schedules(
+        schedules=[warmup_fn, decay_fn], boundaries=[num_warmup_steps]
+    )
     return schedule_fn
 
 
@@ -173,7 +202,9 @@ class TrainState(train_state.TrainState):
         )
 
     def replicate(self):
-        return jax_utils.replicate(self).replace(dropout_rng=shard_prng_key(self.dropout_rng))
+        return jax_utils.replicate(self).replace(
+            dropout_rng=shard_prng_key(self.dropout_rng)
+        )
 
     def unreplicate(self):
         return jax_utils.unreplicate(self)
@@ -194,7 +225,9 @@ def main():
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, training_args = parser.parse_json_file(
+            json_file=os.path.abspath(sys.argv[1])
+        )
     else:
         model_args, training_args = parser.parse_args_into_dataclasses()
 
@@ -216,7 +249,11 @@ def main():
 
     # 5. Load pretrained config, model and processor
     config = AutoConfig.from_pretrained(
-        (model_args.config_name if model_args.config_name else model_args.model_name_or_path),
+        (
+            model_args.config_name
+            if model_args.config_name
+            else model_args.model_name_or_path
+        ),
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
@@ -235,7 +272,9 @@ def main():
     # enable scan / gradient checkpointing if necessary in the student model
     if model_args.use_scan:
         student_model.enable_scan()  # to enable scan in the nn.Module
-        student_params = student_model.convert_unroll_to_scan(student_params)  # to convert the unrolled params to scan
+        student_params = student_model.convert_unroll_to_scan(
+            student_params
+        )  # to convert the unrolled params to scan
 
     # Initialize our student state
     rng = jax.random.PRNGKey(training_args.seed)
@@ -270,7 +309,10 @@ def main():
             for layer in flat_params.keys()
             if layer_norm_name in "".join(layer).lower()
         }
-        flat_mask = {path: path[-1] != "bias" and path[-2:] not in layer_norm_named_params for path in flat_params}
+        flat_mask = {
+            path: path[-1] != "bias" and path[-2:] not in layer_norm_named_params
+            for path in flat_params
+        }
         return traverse_util.unflatten_dict(flat_mask)
 
     # create adam optimizer
@@ -293,12 +335,18 @@ def main():
     )
 
     if training_args.resume_from_checkpoint is not None:
-        if os.path.isfile(os.path.join(training_args.resume_from_checkpoint, "train_state.msgpack")):
+        if os.path.isfile(
+            os.path.join(training_args.resume_from_checkpoint, "train_state.msgpack")
+        ):
             logger.info(
                 f"Checkpoint detected, resuming training at {training_args.resume_from_checkpoint}. To avoid "
                 "this behavior, omit the resume_from_checkpoint argument."
             )
-            with Path(os.path.join(training_args.resume_from_checkpoint, "train_state.msgpack")).open("rb") as f:
+            with Path(
+                os.path.join(
+                    training_args.resume_from_checkpoint, "train_state.msgpack"
+                )
+            ).open("rb") as f:
                 student_state = from_bytes(student_state, f.read())
         else:
             logger.warning(
@@ -311,10 +359,13 @@ def main():
     # save weights in HF Transformers format
     if jax.process_index() == 0:
         student_model.disable_scan()
-        student_state_params = student_model.convert_scan_to_unroll(student_state.params)
+        student_state_params = student_model.convert_scan_to_unroll(
+            student_state.params
+        )
         student_params = jax.device_get(student_state_params)
         student_model.save_pretrained(
-            os.path.join(training_args.output_dir, f"checkpoint-{cur_step}"), params=student_params
+            os.path.join(training_args.output_dir, f"checkpoint-{cur_step}"),
+            params=student_params,
         )
         if training_args.push_to_hub:
             repo.push_to_hub(

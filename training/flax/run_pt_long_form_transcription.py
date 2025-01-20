@@ -64,15 +64,21 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+        metadata={
+            "help": "Path to pretrained model or model identifier from huggingface.co/models"
+        }
     )
     cache_dir: Optional[str] = field(
         default=None,
-        metadata={"help": "Where to store the pretrained models downloaded from huggingface.co"},
+        metadata={
+            "help": "Where to store the pretrained models downloaded from huggingface.co"
+        },
     )
     model_revision: str = field(
         default="main",
-        metadata={"help": "The specific model version to use (can be a branch name, tag name or commit id)."},
+        metadata={
+            "help": "The specific model version to use (can be a branch name, tag name or commit id)."
+        },
     )
     subfolder: str = field(
         default="",
@@ -119,15 +125,21 @@ class ModelArguments:
     )
     do_sample: Optional[bool] = field(
         default=False,
-        metadata={"help": "Whether or not to use sampling ; use greedy decoding otherwise."},
+        metadata={
+            "help": "Whether or not to use sampling ; use greedy decoding otherwise."
+        },
     )
     top_k: Optional[int] = field(
         default=50,
-        metadata={"help": "The number of the highest probability vocabulary tokens to keep for top-k-filtering."},
+        metadata={
+            "help": "The number of the highest probability vocabulary tokens to keep for top-k-filtering."
+        },
     )
     temperature: Optional[float] = field(
         default=1.0,
-        metadata={"help": "The value used to modulate the next token probabilities if sampling."},
+        metadata={
+            "help": "The value used to modulate the next token probabilities if sampling."
+        },
     )
     chunk_length_s: Optional[float] = field(
         default=0,
@@ -152,11 +164,15 @@ class DataTrainingArguments:
     )
     dataset_config_name: Optional[str] = field(
         default=None,
-        metadata={"help": "The configuration name of the dataset to use (via the datasets library)."},
+        metadata={
+            "help": "The configuration name of the dataset to use (via the datasets library)."
+        },
     )
     dataset_split_name: Optional[str] = field(
         default=None,
-        metadata={"help": "The split name of the dataset to use (via the datasets library)."},
+        metadata={
+            "help": "The split name of the dataset to use (via the datasets library)."
+        },
     )
     dataset_cache_dir: Optional[str] = field(
         default=None,
@@ -168,15 +184,21 @@ class DataTrainingArguments:
     )
     audio_column_name: str = field(
         default="audio",
-        metadata={"help": "The name of the dataset column containing the audio data. Defaults to 'audio'"},
+        metadata={
+            "help": "The name of the dataset column containing the audio data. Defaults to 'audio'"
+        },
     )
     text_column_name: str = field(
         default=None,
-        metadata={"help": "The name of the dataset column containing the text data. Defaults to 'text'."},
+        metadata={
+            "help": "The name of the dataset column containing the text data. Defaults to 'text'."
+        },
     )
     max_label_length: int = field(
         default=256,
-        metadata={"help": "Truncate transcriptions that are longer `max_label_length` tokens."},
+        metadata={
+            "help": "Truncate transcriptions that are longer `max_label_length` tokens."
+        },
     )
     wandb_project: str = field(
         default="distil-whisper",
@@ -206,22 +228,33 @@ class DataTrainingArguments:
     )
     streaming: bool = field(
         default=True,
-        metadata={"help": "Whether to use Datasets' streaming mode to load and the data."},
+        metadata={
+            "help": "Whether to use Datasets' streaming mode to load and the data."
+        },
     )
     max_eval_samples: Optional[int] = field(
         default=None,
-        metadata={"help": "For debugging purposes, truncate the number of eval examples to this value if set."},
+        metadata={
+            "help": "For debugging purposes, truncate the number of eval examples to this value if set."
+        },
     )
     log_audio: Optional[bool] = field(
         default=False,
-        metadata={"help": "For debugging purposes, record the audio samples as well as the ground truths / preds."},
+        metadata={
+            "help": "For debugging purposes, record the audio samples as well as the ground truths / preds."
+        },
     )
     log_predictions: Optional[bool] = field(
         default=True,
-        metadata={"help": "Whether or not to log the ground truths / pred text to the wandb logger."},
+        metadata={
+            "help": "Whether or not to log the ground truths / pred text to the wandb logger."
+        },
     )
     ngram_degree: Optional[int] = field(
-        default=5, metadata={"help": "Degree of n-grams used when computing duplicate n-grams in the predicted text."}
+        default=5,
+        metadata={
+            "help": "Degree of n-grams used when computing duplicate n-grams in the predicted text."
+        },
     )
 
 
@@ -239,7 +272,9 @@ def write_wandb_metric(wandb_logger, metrics, train_time, prefix):
 
 
 def convert_audio_to_wandb(wandb_logger, audio):
-    return wandb_logger.Audio(audio["array"][:, np.newaxis], sample_rate=audio["sampling_rate"])
+    return wandb_logger.Audio(
+        audio["array"][:, np.newaxis], sample_rate=audio["sampling_rate"]
+    )
 
 
 def write_wandb_pred(
@@ -253,7 +288,10 @@ def write_wandb_pred(
 ):
     columns = ["Target", "Pred", "Norm Target", "Norm Pred"]
     # convert str data to a wandb compatible format
-    str_data = [[label_str[i], pred_str[i], norm_label_str[i], norm_pred_str[i]] for i in range(len(pred_str))]
+    str_data = [
+        [label_str[i], pred_str[i], norm_label_str[i], norm_pred_str[i]]
+        for i in range(len(pred_str))
+    ]
 
     if len(eval_audios) > 0:
         columns.insert(0, "Audio")
@@ -272,7 +310,12 @@ def write_wandb_pred(
 
 
 def convert_dataset_str_to_list(
-    dataset_names, dataset_config_names, splits=None, text_column_names=None, dataset_hours=None, default_split="train"
+    dataset_names,
+    dataset_config_names,
+    splits=None,
+    text_column_names=None,
+    dataset_hours=None,
+    default_split="train",
 ):
     if isinstance(dataset_names, str):
         dataset_names = dataset_names.split("+")
@@ -280,11 +323,15 @@ def convert_dataset_str_to_list(
         # we assume that all the datasets we're using derive from the distil-whisper org on the Hub - prepend the org name if necessary
         for i in range(len(dataset_names)):
             ds_name = dataset_names[i]
-            dataset_names[i] = f"distil-whisper/{ds_name}" if "/" not in ds_name else ds_name
+            dataset_names[i] = (
+                f"distil-whisper/{ds_name}" if "/" not in ds_name else ds_name
+            )
 
         dataset_config_names = dataset_config_names.split("+")
         splits = splits.split("+") if splits is not None else None
-        text_column_names = text_column_names.split("+") if text_column_names is not None else None
+        text_column_names = (
+            text_column_names.split("+") if text_column_names is not None else None
+        )
         dataset_hours = dataset_hours.split("+") if dataset_hours is not None else None
 
     # basic checks to ensure we've got the right number of datasets/configs/splits/columns/probs
@@ -316,9 +363,15 @@ def convert_dataset_str_to_list(
         dataset_hours = [None] * len(dataset_names)
 
     text_column_names = (
-        text_column_names if text_column_names is not None else ["text" for _ in range(len(dataset_names))]
+        text_column_names
+        if text_column_names is not None
+        else ["text" for _ in range(len(dataset_names))]
     )
-    splits = splits if splits is not None else [default_split for _ in range(len(dataset_names))]
+    splits = (
+        splits
+        if splits is not None
+        else [default_split for _ in range(len(dataset_names))]
+    )
 
     dataset_names_dict = []
     for i, ds_name in enumerate(dataset_names):
@@ -336,7 +389,11 @@ def convert_dataset_str_to_list(
 
 def data(dataset, text_column_name="text", log_audio=False):
     for item in dataset:
-        yield {**item["audio"], "reference": item[text_column_name], "audio": item["audio"] if log_audio else None}
+        yield {
+            **item["audio"],
+            "reference": item[text_column_name],
+            "audio": item["audio"] if log_audio else None,
+        }
 
 
 def main():
@@ -344,12 +401,16 @@ def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
+    parser = HfArgumentParser(
+        (ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments)
+    )
 
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args = parser.parse_json_file(
+            json_file=os.path.abspath(sys.argv[1])
+        )
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
@@ -360,11 +421,14 @@ def main():
             try:
                 from torch.utils.tensorboard import SummaryWriter
 
-                summary_writer = SummaryWriter(log_dir=os.path.join(training_args.output_dir, "runs"))
+                summary_writer = SummaryWriter(
+                    log_dir=os.path.join(training_args.output_dir, "runs")
+                )
             except ImportError as ie:
                 has_tensorboard = False
                 logger.warning(
-                    "Unable to display metrics through TensorBoard because some" f" package are not installed: {ie}"
+                    "Unable to display metrics through TensorBoard because some"
+                    f" package are not installed: {ie}"
                 )
         else:
             logger.warning(
@@ -387,7 +451,9 @@ def main():
                 save_code=data_args.save_code_to_wandb,
             )
         else:
-            logger.warning("Wandb logging requires wandb to be installed. Run `pip install wandb` to enable.")
+            logger.warning(
+                "Wandb logging requires wandb to be installed. Run `pip install wandb` to enable."
+            )
 
     # 2. Setup logging
     # Make one log on every process with the configuration for debugging.
@@ -430,7 +496,9 @@ def main():
             use_auth_token=True if model_args.use_auth_token else None,
             streaming=data_args.streaming,
         )
-        if dataset_dict["text_column_name"] not in list(raw_datasets[pretty_name].features.keys()):
+        if dataset_dict["text_column_name"] not in list(
+            raw_datasets[pretty_name].features.keys()
+        ):
             raise ValueError(
                 f"--text column name {dataset_dict['text_column_name']} not found in the evaluation "
                 f"dataset {dataset_dict['name']}. Ensure `text_column_name` is set to the correct column "
@@ -468,7 +536,11 @@ def main():
 
     # Store some constants
     per_device_eval_batch_size = int(training_args.per_device_eval_batch_size)
-    num_beams = training_args.generation_num_beams if training_args.generation_num_beams is not None else 1
+    num_beams = (
+        training_args.generation_num_beams
+        if training_args.generation_num_beams is not None
+        else 1
+    )
 
     model_kwargs = {
         "cache_dir": model_args.cache_dir,
@@ -491,7 +563,9 @@ def main():
 
     if pipe.model.can_generate():
         if pipe.model.config.decoder_start_token_id is None:
-            raise ValueError("Make sure that `config.decoder_start_token_id` is correctly defined")
+            raise ValueError(
+                "Make sure that `config.decoder_start_token_id` is correctly defined"
+            )
         generate_kwargs = {
             "num_beams": num_beams,
             "length_penalty": model_args.length_penalty,
@@ -499,8 +573,13 @@ def main():
             "top_k": model_args.top_k,
             "temperature": model_args.temperature,
         }
-        if hasattr(pipe.model.generation_config, "is_multilingual") and pipe.model.generation_config.is_multilingual:
-            generate_kwargs = generate_kwargs.update({"langauge": "English", "task": "transcribe"})
+        if (
+            hasattr(pipe.model.generation_config, "is_multilingual")
+            and pipe.model.generation_config.is_multilingual
+        ):
+            generate_kwargs = generate_kwargs.update(
+                {"langauge": "English", "task": "transcribe"}
+            )
     else:
         generate_kwargs = None
 
@@ -513,23 +592,57 @@ def main():
         norm_pred_str = [normalizer(pred) for pred in pred_str]
         norm_label_str = [normalizer(label) for label in label_str]
         # for logging, we need the pred/labels to match the norm_pred/norm_labels, so discard any filtered samples here
-        pred_str = [pred_str[i] for i in range(len(norm_pred_str)) if len(norm_label_str[i]) > 0]
-        label_str = [label_str[i] for i in range(len(norm_label_str)) if len(norm_label_str[i]) > 0]
+        pred_str = [
+            pred_str[i] for i in range(len(norm_pred_str)) if len(norm_label_str[i]) > 0
+        ]
+        label_str = [
+            label_str[i]
+            for i in range(len(norm_label_str))
+            if len(norm_label_str[i]) > 0
+        ]
         # filtering step to only evaluate the samples that correspond to non-zero normalized references:
-        norm_pred_str = [norm_pred_str[i] for i in range(len(norm_pred_str)) if len(norm_label_str[i]) > 0]
-        norm_label_str = [norm_label_str[i] for i in range(len(norm_label_str)) if len(norm_label_str[i]) > 0]
+        norm_pred_str = [
+            norm_pred_str[i]
+            for i in range(len(norm_pred_str))
+            if len(norm_label_str[i]) > 0
+        ]
+        norm_label_str = [
+            norm_label_str[i]
+            for i in range(len(norm_label_str))
+            if len(norm_label_str[i]) > 0
+        ]
 
-        wer_output = process_words(norm_label_str, norm_pred_str, wer_default, wer_default)
+        wer_output = process_words(
+            norm_label_str, norm_pred_str, wer_default, wer_default
+        )
         wer_norm = 100 * wer_output.wer
-        ier_norm = 100 * wer_output.insertions / sum([len(ref) for ref in wer_output.references])
-        ser_norm = 100 * wer_output.substitutions / sum([len(ref) for ref in wer_output.references])
-        der_norm = 100 * wer_output.deletions / sum([len(ref) for ref in wer_output.references])
+        ier_norm = (
+            100
+            * wer_output.insertions
+            / sum([len(ref) for ref in wer_output.references])
+        )
+        ser_norm = (
+            100
+            * wer_output.substitutions
+            / sum([len(ref) for ref in wer_output.references])
+        )
+        der_norm = (
+            100
+            * wer_output.deletions
+            / sum([len(ref) for ref in wer_output.references])
+        )
 
         all_ngrams = list(ngrams(" ".join(norm_pred_str).split(), ngram_degree))
         repeated_ngrams = len(all_ngrams) - len(set(all_ngrams))
 
         return (
-            {"wer": wer_norm, "ier": ier_norm, "ser": ser_norm, "der": der_norm, "repeated_ngrams": repeated_ngrams},
+            {
+                "wer": wer_norm,
+                "ier": ier_norm,
+                "ser": ser_norm,
+                "der": der_norm,
+                "repeated_ngrams": repeated_ngrams,
+            },
             pred_str,
             label_str,
             norm_pred_str,
@@ -557,10 +670,12 @@ def main():
 
         eval_time = time.time() - eval_start
 
-        wer_metric, pred_str, label_str, norm_pred_str, norm_label_str = compute_metrics(
-            eval_preds, eval_labels, data_args.ngram_degree
+        wer_metric, pred_str, label_str, norm_pred_str, norm_label_str = (
+            compute_metrics(eval_preds, eval_labels, data_args.ngram_degree)
         )
-        wer_desc = " ".join([f"{split} {key}: {value} |" for key, value in wer_metric.items()])
+        wer_desc = " ".join(
+            [f"{split} {key}: {value} |" for key, value in wer_metric.items()]
+        )
 
         # Print metrics to stdout
         logger.info(wer_desc)
@@ -574,12 +689,23 @@ def main():
             write_wandb_metric(wandb_logger, wer_metric, eval_time, prefix=split)
             if data_args.log_predictions:
                 write_wandb_pred(
-                    wandb_logger, eval_audios, pred_str, label_str, norm_pred_str, norm_label_str, prefix=split
+                    wandb_logger,
+                    eval_audios,
+                    pred_str,
+                    label_str,
+                    norm_pred_str,
+                    norm_label_str,
+                    prefix=split,
                 )
 
     logger.info("***** Running Eval *****")
-    logger.info("  Instantaneous batch size per device =" f" {training_args.per_device_eval_batch_size}")
-    logger.info(f"  Total eval batch size (w. parallel & distributed) = {training_args.per_device_eval_batch_size}")
+    logger.info(
+        "  Instantaneous batch size per device ="
+        f" {training_args.per_device_eval_batch_size}"
+    )
+    logger.info(
+        f"  Total eval batch size (w. parallel & distributed) = {training_args.per_device_eval_batch_size}"
+    )
     if pipe.model.can_generate():
         logger.info(f"  Beam size = {num_beams}")
         if num_beams > 1:

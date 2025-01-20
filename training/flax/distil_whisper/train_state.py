@@ -101,7 +101,9 @@ class InferenceState(flax.struct.PyTreeNode):
             params=flax.core.freeze(state_dict["target"]),
             step=state_dict["state"]["step"],
             flax_mutables=(
-                flax.core.freeze(state_dict["flax_mutables"]) if "flax_mutables" in state_dict else EMPTY_DICT
+                flax.core.freeze(state_dict["flax_mutables"])
+                if "flax_mutables" in state_dict
+                else EMPTY_DICT
             ),
         )
 

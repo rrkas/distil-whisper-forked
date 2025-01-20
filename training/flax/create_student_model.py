@@ -120,22 +120,30 @@ def init_student_model_from_teacher(
     student_config = copy.deepcopy(teacher_config)
     student_config.update(
         {
-            "encoder_layers": encoder_layers if encoder_layers is not None else teacher_encoder_layers,
+            "encoder_layers": (
+                encoder_layers if encoder_layers is not None else teacher_encoder_layers
+            ),
             "decoder_layers": decoder_layers,
             "max_source_positions": (
-                max_source_positions if max_source_positions is not None else student_config.max_source_positions
+                max_source_positions
+                if max_source_positions is not None
+                else student_config.max_source_positions
             ),
         }
     )
 
-    encoder_mapping = np.linspace(0, teacher_encoder_layers - 1, student_config.encoder_layers, dtype=int)
+    encoder_mapping = np.linspace(
+        0, teacher_encoder_layers - 1, student_config.encoder_layers, dtype=int
+    )
     encoder_mapping[-1] = teacher_encoder_layers - 1
 
     encoder_map = {}
     for student_layer, teacher_layer in enumerate(encoder_mapping):
         encoder_map[str(teacher_layer)] = str(student_layer)
 
-    decoder_mapping = np.linspace(0, teacher_decoder_layers - 1, student_config.decoder_layers, dtype=int)
+    decoder_mapping = np.linspace(
+        0, teacher_decoder_layers - 1, student_config.decoder_layers, dtype=int
+    )
     decoder_mapping[-1] = teacher_decoder_layers - 1
 
     decoder_map = {}
@@ -149,24 +157,26 @@ def init_student_model_from_teacher(
     for layer in teacher_params["model"]["decoder"]["layers"]:
         if layer in decoder_map:
             # re-introduce pre-defined layers from the teacher
-            student_params["model"]["decoder"]["layers"][decoder_map[layer]] = teacher_params["model"]["decoder"][
-                "layers"
-            ][layer]
+            student_params["model"]["decoder"]["layers"][decoder_map[layer]] = (
+                teacher_params["model"]["decoder"]["layers"][layer]
+            )
 
     if encoder_layers is not None:
         student_params["model"]["encoder"]["layers"] = {}
         for layer in teacher_params["model"]["encoder"]["layers"]:
             if layer in encoder_map:
                 # re-introduce pre-defined layers from the teacher
-                student_params["model"]["encoder"]["layers"][encoder_map[layer]] = teacher_params["model"]["encoder"][
-                    "layers"
-                ][layer]
+                student_params["model"]["encoder"]["layers"][encoder_map[layer]] = (
+                    teacher_params["model"]["encoder"]["layers"][layer]
+                )
 
     if max_source_positions is not None:
         # slice the first MAX_SOURCE_POSITIONS embedding weights
-        student_params["model"]["encoder"]["embed_positions"]["embedding"] = teacher_params["model"]["encoder"][
-            "embed_positions"
-        ]["embedding"][: student_config.max_source_positions, :]
+        student_params["model"]["encoder"]["embed_positions"][
+            "embedding"
+        ] = teacher_params["model"]["encoder"]["embed_positions"]["embedding"][
+            : student_config.max_source_positions, :
+        ]
         # update the feature extractor to handle the new input length
         chunk_length = int(student_config.max_source_positions * 2 / 100)
         processor.feature_extractor = WhisperFeatureExtractor(chunk_length=chunk_length)
@@ -193,13 +203,17 @@ def init_student_model_from_teacher(
     processor = WhisperProcessor.from_pretrained(save_dir)
 
     # define some random inputs
-    input_features = processor(np.ones(16000), sampling_rate=16000, return_tensors="np").input_features
+    input_features = processor(
+        np.ones(16000), sampling_rate=16000, return_tensors="np"
+    ).input_features
     decoder_start_token_id = student_model.config.decoder_start_token_id
     decoder_input_ids = np.ones((input_features.shape[0], 1)) * decoder_start_token_id
 
     # do a forward pass - outputs will be gibberish for the initialised model so we can't check them
     logger.info("Checking we can run the converted model forward...")
-    _ = student_model(input_features, decoder_input_ids=decoder_input_ids, params=student_params).logits
+    _ = student_model(
+        input_features, decoder_input_ids=decoder_input_ids, params=student_params
+    ).logits
     logger.info("Conversion successful!")
 
     if push_to_hub:
